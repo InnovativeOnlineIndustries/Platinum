@@ -29,7 +29,7 @@ public class AnnotationUtil {
         Type type = Type.getType(annotation);
         for (ModFileScanData allScanDatum : ScanDataProvider.ALL_SCAN_DATA.values()) {
             for (ModFileScanData.AnnotationData allScanDatumAnnotation : allScanDatum.getAnnotations()) {
-                if (Objects.equals(allScanDatumAnnotation.annotationData(), type)) {
+                if (Objects.equals(allScanDatumAnnotation.annotationType(), type)) {
                     try {
                         classList.add(Class.forName(allScanDatumAnnotation.memberName()));
                     } catch (ClassNotFoundException e) {
