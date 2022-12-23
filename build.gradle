@@ -57,6 +57,7 @@ repositories {
   maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
   maven { url = "https://jitpack.io" }
 }
+
 dependencies {
   minecraft "com.mojang:minecraft:${project.minecraftVersion}"
   mappings loom.officialMojangMappings()
@@ -79,6 +80,16 @@ dependencies {
   include modApi('teamreborn:energy:2.2.0') {
     exclude(group: "net.fabricmc.fabric-api")
   }
+}
+
+processResources {
+  inputs.property "version", project.version
+
+  filesMatching("fabric.mod.json") {
+    expand "version": project.version
+  }
+
+  exclude 'META-INF/mods.toml'
 }
 
 jar {
