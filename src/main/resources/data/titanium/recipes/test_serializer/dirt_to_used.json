@@ -1,7 +1,7 @@
 {
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "titanium:content_exists",
+      "condition": "titanium:content_exists",
       "registry": "minecraft:recipe_serializer",
       "name": "titanium:test_serializer"
     }
