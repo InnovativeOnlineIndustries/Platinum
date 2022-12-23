@@ -18,6 +18,8 @@ import com.hrznstudio.titanium.util.AssetUtil;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.github.fabricators_of_create.porting_lib.mixin.client.accessor.AbstractContainerScreenAccessor;
+import io.github.fabricators_of_create.porting_lib.util.NBTSerializer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.screens.Screen;
@@ -83,16 +85,16 @@ public class ItemstackFilterScreenAddon extends BasicScreenAddon {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         Screen screen = Minecraft.getInstance().screen;
         if (screen instanceof AbstractContainerScreen && ((AbstractContainerScreen) screen).getMenu() instanceof ILocatable) {
-            if (!isMouseOver(mouseX - ((AbstractContainerScreen<?>) screen).getGuiLeft(), mouseY - ((AbstractContainerScreen<?>) screen).getGuiTop()))
+            if (!isMouseOver(mouseX - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiLeft(), mouseY - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiTop()))
                 return false;
             ILocatable locatable = (ILocatable) ((AbstractContainerScreen) screen).getMenu();
             for (FilterSlot<ItemStack> filterSlot : filter.getFilterSlots()) {
-                if (filterSlot != null && mouseX > (((AbstractContainerScreen<?>) screen).getGuiLeft() + filterSlot.getX() + 1) && mouseX < (((AbstractContainerScreen<?>) screen).getGuiLeft() + filterSlot.getX() + 16) &&
-                    mouseY > (((AbstractContainerScreen<?>) screen).getGuiTop() + filterSlot.getY() + 1) && mouseY < (((AbstractContainerScreen<?>) screen).getGuiTop() + filterSlot.getY() + 16)) {
+                if (filterSlot != null && mouseX > (((AbstractContainerScreenAccessor) screen).port_lib$getGuiLeft() + filterSlot.getX() + 1) && mouseX < (((AbstractContainerScreenAccessor) screen).port_lib$getGuiLeft() + filterSlot.getX() + 16) &&
+                    mouseY > (((AbstractContainerScreenAccessor) screen).port_lib$getGuiTop() + filterSlot.getY() + 1) && mouseY < (((AbstractContainerScreenAccessor) screen).port_lib$getGuiTop() + filterSlot.getY() + 16)) {
                     CompoundTag compoundNBT = new CompoundTag();
                     compoundNBT.putString("Name", filter.getName());
                     compoundNBT.putInt("Slot", filterSlot.getFilterID());
-                    compoundNBT.put("Filter", Minecraft.getInstance().player.containerMenu.getCarried().serializeNBT());
+                    compoundNBT.put("Filter", NBTSerializer.serializeNBT(Minecraft.getInstance().player.containerMenu.getCarried()));
                     Titanium.NETWORK.get().sendToServer(new ButtonClickNetworkMessage(locatable.getLocatorInstance(), -2, compoundNBT));
                     return true;
                 }

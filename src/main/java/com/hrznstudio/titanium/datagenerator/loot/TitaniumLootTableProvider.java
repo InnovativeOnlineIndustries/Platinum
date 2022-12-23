@@ -8,17 +8,17 @@
 package com.hrznstudio.titanium.datagenerator.loot;
 
 import com.hrznstudio.titanium.datagenerator.loot.block.BasicBlockLootTables;
+import com.hrznstudio.titanium.fabric.NonNullLazy;
 import com.mojang.datafixers.util.Pair;
+import io.github.fabricators_of_create.porting_lib.data.ModdedLootTableProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.loot.BlockLoot;
-import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraftforge.common.util.NonNullLazy;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class TitaniumLootTableProvider extends LootTableProvider {
+public class TitaniumLootTableProvider extends ModdedLootTableProvider {
     private final NonNullLazy<List<Block>> blocksToProcess;
 
     public TitaniumLootTableProvider(DataGenerator dataGenerator, NonNullLazy<List<Block>> blocks) {

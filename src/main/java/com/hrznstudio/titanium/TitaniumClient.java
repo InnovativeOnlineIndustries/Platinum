@@ -8,26 +8,44 @@
 package com.hrznstudio.titanium;
 
 import com.hrznstudio.titanium.block.BasicBlock;
+import com.hrznstudio.titanium.client.screen.container.BasicAddonScreen;
+import com.hrznstudio.titanium.container.BasicAddonContainer;
+import com.hrznstudio.titanium.reward.RewardManager;
 import com.hrznstudio.titanium.util.RayTraceUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RenderHighlightEvent;
+import org.jetbrains.annotations.Nullable;
 
-public class TitaniumClient {
+public class TitaniumClient implements ClientModInitializer {
+
+    @Override
+    public void onInitializeClient() {
+        WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register(TitaniumClient::blockOverlayEvent);
+        TitaniumClient.registerModelLoader();
+        RewardManager.get().getRewards().values().forEach(rewardGiver -> rewardGiver.getRewards().forEach(reward -> reward.register(EnvType.CLIENT)));
+        MenuScreens.register((MenuType<? extends BasicAddonContainer>) BasicAddonContainer.TYPE.get(), BasicAddonScreen::new);
+    }
+
     public static void registerModelLoader() {
         //ModelLoaderRegistry.registerLoader(new ResourceLocation(Titanium.MODID, "model_loader"),new TitaniumModelLoader());
     }
@@ -36,31 +54,31 @@ public class TitaniumClient {
         return minecraft.getEntityRenderDispatcher().getRenderer(player);
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public static void blockOverlayEvent(RenderHighlightEvent.Block event) {
-        if (event.getTarget() != null) {
-            BlockHitResult traceResult = event.getTarget();
+    @Environment(EnvType.CLIENT)
+    public static boolean blockOverlayEvent(WorldRenderContext context, @Nullable HitResult hitResult) {
+        if (hitResult != null && hitResult instanceof BlockHitResult traceResult) {
             BlockState og = Minecraft.getInstance().level.getBlockState(traceResult.getBlockPos());
             if (og.getBlock() instanceof BasicBlock && ((BasicBlock) og.getBlock()).hasIndividualRenderVoxelShape()) {
-                VoxelShape shape = RayTraceUtils.rayTraceVoxelShape(traceResult, Minecraft.getInstance().level, Minecraft.getInstance().player, 32, event.getPartialTick());
-                BlockPos blockpos = event.getTarget().getBlockPos();
-                event.setCanceled(true);
+                VoxelShape shape = RayTraceUtils.rayTraceVoxelShape(traceResult, Minecraft.getInstance().level, Minecraft.getInstance().player, 32, context.tickDelta());
+                BlockPos blockpos = traceResult.getBlockPos();
                 if (shape != null && !shape.isEmpty()) {
                     PoseStack stack = new PoseStack();
                     stack.pushPose();
-                    Camera info = event.getCamera();
+                    Camera info = context.camera();
                     stack.mulPose(Vector3f.XP.rotationDegrees(info.getXRot()));
                     stack.mulPose(Vector3f.YP.rotationDegrees(info.getYRot() + 180));
                     double d0 = info.getPosition().x();
                     double d1 = info.getPosition().y();
                     double d2 = info.getPosition().z();
-                    VertexConsumer builder = event.getMultiBufferSource().getBuffer(RenderType.LINES);
+                    VertexConsumer builder = context.consumers().getBuffer(RenderType.LINES);
                     drawShape(stack, builder, shape, blockpos.getX() - d0,
                         blockpos.getY() - d1, blockpos.getZ() - d2,0, 0, 0, 0.5F);
                     stack.popPose();
                 }
+                return false;
             }
         }
+        return true;
     }
 
     private static void drawShape(PoseStack matrixStackIn, VertexConsumer bufferIn, VoxelShape shapeIn, double xIn, double yIn, double zIn, float red, float green, float blue, float alpha) {

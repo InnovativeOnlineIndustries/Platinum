@@ -7,6 +7,8 @@
 
 package com.hrznstudio.titanium.datagenerator.loot.block;
 
+import com.hrznstudio.titanium.fabric.NonNullLazy;
+import io.github.fabricators_of_create.porting_lib.data.ModdedBlockLoot;
 import net.minecraft.data.loot.BlockLoot;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -15,11 +17,10 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
-import net.minecraftforge.common.util.NonNullLazy;
 
 import java.util.List;
 
-public class BasicBlockLootTables extends BlockLoot {
+public class BasicBlockLootTables extends ModdedBlockLoot {
     private final NonNullLazy<List<Block>> blocksToProcess;
 
     public BasicBlockLootTables(NonNullLazy<List<Block>> blocksToProcess) {

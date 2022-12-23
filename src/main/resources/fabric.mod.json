@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "titanium",
+  "version": "${version}",
+  "name": "Titanium",
+  "description": "A Lib",
+  "license": ["GNU LESSER GENERAL PUBLIC LICENSE"],
+  "authors": [
+    "TheCodedOne",
+    "Buuz135",
+    "AlphaMode"
+  ],
+  "accessWidener": "titanium.accesswidener",
+  "entrypoints": {
+    "main": [
+      "com.hrznstudio.titanium.Titanium"
+    ],
+    "client": [
+      "com.hrznstudio.titanium.TitaniumClient"
+    ],
+    "fabric-datagen": [
+      "com.hrznstudio.titanium.TitaniumData"
+    ],
+    "jei_mod_plugin": [
+      "com.hrznstudio.titanium.jei.TitaniumJEIPlugin"
+    ],
+    "rei_client": [
+      "com.hrznstudio.titanium.rei.TitaniumREIPlugin"
+    ]
+  }
+}

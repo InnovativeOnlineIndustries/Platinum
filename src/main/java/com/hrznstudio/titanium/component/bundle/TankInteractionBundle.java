@@ -19,19 +19,21 @@ import com.hrznstudio.titanium.component.inventory.InventoryComponent;
 import com.hrznstudio.titanium.component.progress.ProgressBarComponent;
 import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.util.TitaniumFluidUtil;
+import com.mojang.datafixers.util.Pair;
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemHandlerHelper;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,14 +41,14 @@ import java.util.function.Supplier;
 
 public class TankInteractionBundle<T extends BasicTile & IComponentHarness> implements IComponentBundle, INBTSerializable<CompoundTag> {
 
-    private final Supplier<LazyOptional<IFluidHandler>> fluidHandler;
+    private final Supplier<Storage<FluidVariant>> fluidHandler;
     private int posX;
     private int posY;
     private InventoryComponent<T> input;
     private InventoryComponent<T> output;
     private ProgressBarComponent<T> bar;
 
-    public TankInteractionBundle(Supplier<LazyOptional<IFluidHandler>> fluidHandler, int posX, int posY, T componentHarness, int maxProgress) {
+    public TankInteractionBundle(Supplier<Storage<FluidVariant>> fluidHandler, int posX, int posY, T componentHarness, int maxProgress) {
         this.fluidHandler = fluidHandler;
         this.posX = posX;
         this.posY = posY;
@@ -54,7 +56,7 @@ public class TankInteractionBundle<T extends BasicTile & IComponentHarness> impl
             .setSlotToItemStackRender(0, new ItemStack(Items.BUCKET))
             .setOutputFilter((stack, integer) -> false)
             .setSlotToColorRender(0, DyeColor.BLUE)
-            .setInputFilter((stack, integer) -> stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent())
+            .setInputFilter((stack, integer) -> ContainerItemContext.withInitial(stack).find(FluidStorage.ITEM) != null)
             .setComponentHarness(componentHarness);
         this.output = new InventoryComponent<T>("tank_output", posX + 5, posY + 60, 1)
             .setSlotToItemStackRender(0, new ItemStack(Items.BUCKET))
@@ -64,12 +66,14 @@ public class TankInteractionBundle<T extends BasicTile & IComponentHarness> impl
         this.bar = new ProgressBarComponent<T>(posX + 5, posY + 30, maxProgress)
             .setBarDirection(ProgressBarComponent.BarDirection.ARROW_DOWN)
             .setCanReset(t -> true)
-            .setCanIncrease(t -> !this.input.getStackInSlot(0).isEmpty() && this.input.getStackInSlot(0).getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent() && !getOutputStack(false).isEmpty() && (this.output.getStackInSlot(0).isEmpty() || ItemHandlerHelper.canItemStacksStack(getOutputStack(false), this.output.getStackInSlot(0))))
+            .setCanIncrease(t -> !this.input.getStackInSlot(0).isEmpty() && ContainerItemContext.withInitial(this.input.getStackInSlot(0)).find(FluidStorage.ITEM) != null && !getOutputStack(false).isEmpty() && (this.output.getStackInSlot(0).isEmpty() || ItemHandlerHelper.canItemStacksStack(getOutputStack(false), this.output.getStackInSlot(0))))
             .setOnFinishWork(() -> {
                 ItemStack result = getOutputStack(false);
-                if (ItemHandlerHelper.insertItem(this.output, result, true).isEmpty()) {
+                Transaction t = TransferUtil.getTransaction();
+                if (TransferUtil.insertItem(this.output, result) <= 0) {
+                    t.close();
                     result = getOutputStack(true);
-                    ItemHandlerHelper.insertItem(this.output, result, false);
+                    TransferUtil.insertItem(this.output, result);
                     this.input.getStackInSlot(0).shrink(1);
                     componentHarness.setChanged();
                 }
@@ -86,19 +90,16 @@ public class TankInteractionBundle<T extends BasicTile & IComponentHarness> impl
     }
 
     public ItemStack getOutputStack(boolean execute) {
-        return fluidHandler.get().map(iFluidHandler -> {
-            ItemStack stack = this.input.getStackInSlot(0).copy();
-            stack.setCount(1);
-            FluidActionResult result = FluidUtil.tryFillContainer(stack, iFluidHandler, Integer.MAX_VALUE, null, execute);
-            if (result.isSuccess()) return result.getResult();
-            result = TitaniumFluidUtil.tryEmptyContainer(stack, iFluidHandler, Integer.MAX_VALUE, execute);
-            if (result.isSuccess()) return result.getResult();
-            return ItemStack.EMPTY;
-        }).orElse(ItemStack.EMPTY);
+        Storage<FluidVariant> iFluidHandler = fluidHandler.get();
+        ItemStack stack = this.input.getStackInSlot(0).copy();
+        stack.setCount(1);
+        Pair<Boolean, ContainerItemContext> result = TitaniumFluidUtil.tryEmptyContainer(stack, iFluidHandler, Integer.MAX_VALUE, execute);
+        if (result.getFirst()) return result.getSecond().getItemVariant().toStack((int) result.getSecond().getAmount());
+        return ItemStack.EMPTY;
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         return Collections.singletonList(() -> new AssetScreenAddon(AssetTypes.AUGMENT_BACKGROUND, posX, posY, true));
     }

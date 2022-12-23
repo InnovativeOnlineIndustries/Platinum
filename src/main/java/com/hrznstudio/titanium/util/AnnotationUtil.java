@@ -8,8 +8,8 @@
 package com.hrznstudio.titanium.util;
 
 import com.hrznstudio.titanium.Titanium;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.forgespi.language.ModFileScanData;
+import com.hrznstudio.titanium.annotation.scanning.ModFileScanData;
+import com.hrznstudio.titanium.annotation.scanning.ScanDataProvider;
 import org.objectweb.asm.Type;
 
 import java.lang.annotation.Annotation;
@@ -18,12 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Use Fabric's entrypoint system.
+ */
+@Deprecated
 public class AnnotationUtil {
 
     public static List<Class> getAnnotatedClasses(Class<? extends Annotation> annotation) {
         List<Class> classList = new ArrayList<>();
         Type type = Type.getType(annotation);
-        for (ModFileScanData allScanDatum : ModList.get().getAllScanData()) {
+        for (ModFileScanData allScanDatum : ScanDataProvider.ALL_SCAN_DATA.values()) {
             for (ModFileScanData.AnnotationData allScanDatumAnnotation : allScanDatum.getAnnotations()) {
                 if (Objects.equals(allScanDatumAnnotation.annotationData(), type)) {
                     try {
@@ -40,8 +44,7 @@ public class AnnotationUtil {
     public static List<Class> getFilteredAnnotatedClasses(Class<? extends Annotation> annotation, String filter) {
         List<Class> classList = new ArrayList<>();
         Type type = Type.getType(annotation);
-        for (ModFileScanData allScanDatum : ModList.get().getAllScanData()) {
-            if (allScanDatum.getTargets().get(filter) == null) continue;
+        for (ModFileScanData allScanDatum : ScanDataProvider.ALL_SCAN_DATA.values()) {
             for (ModFileScanData.AnnotationData allScanDatumAnnotation : allScanDatum.getAnnotations()) {
                 if (Objects.equals(allScanDatumAnnotation.annotationType(), type)) {
                     try {
@@ -58,7 +61,7 @@ public class AnnotationUtil {
     public static List<Field> getAnnotatedFields(Class<? extends Annotation> annotation) {
         List<Field> fields = new ArrayList<>();
         Type type = Type.getType(annotation);
-        for (ModFileScanData allScanDatum : ModList.get().getAllScanData()) {
+        for (ModFileScanData allScanDatum : ScanDataProvider.ALL_SCAN_DATA.values()) {
             for (ModFileScanData.AnnotationData annotationData : allScanDatum.getAnnotations()) {
                 if (Objects.equals(annotationData.annotationType(), type)) {
                     try {

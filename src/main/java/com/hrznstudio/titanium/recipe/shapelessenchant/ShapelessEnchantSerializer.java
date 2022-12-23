@@ -13,6 +13,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +22,6 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -63,7 +63,7 @@ public class ShapelessEnchantSerializer extends ShapelessRecipe.Serializer {
 
     private static Pair<Enchantment, Integer> parseJson(JsonObject jsonObject) {
         String name = GsonHelper.getAsString(jsonObject, "name");
-        Enchantment enchantment = ForgeRegistries.ENCHANTMENTS.getValue(new ResourceLocation(name));
+        Enchantment enchantment = Registry.ENCHANTMENT.get(new ResourceLocation(name));
         if (enchantment == null) {
             throw new JsonParseException("Failed to find enchantment named: " + name);
         }

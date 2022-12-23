@@ -9,10 +9,10 @@ package com.hrznstudio.titanium._impl.test;
 
 import com.hrznstudio.titanium._impl.test.tile.MachineTestTile;
 import com.hrznstudio.titanium.block.RotatableBlock;
+import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.RegistryObject;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class MachineTestBlock extends RotatableBlock<MachineTestTile> {

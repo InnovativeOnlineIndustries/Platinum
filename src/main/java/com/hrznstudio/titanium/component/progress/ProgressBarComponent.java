@@ -23,12 +23,12 @@ import com.hrznstudio.titanium.container.referenceholder.ProgressBarReferenceHol
 import com.hrznstudio.titanium.util.AssetUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.INBTSerializable;
 
 import java.awt.*;
 import java.util.Collections;
@@ -353,7 +353,7 @@ public class ProgressBarComponent<T extends IComponentHarness> implements INBTSe
      * @return A list of GUI addon factories
      */
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         return Collections.singletonList(() -> new ProgressBarScreenAddon<>(posX, posY, this));
     }
@@ -478,13 +478,13 @@ public class ProgressBarComponent<T extends IComponentHarness> implements INBTSe
             }
         };
 
-        @OnlyIn(Dist.CLIENT)
+        @Environment(EnvType.CLIENT)
         public abstract <T extends IComponentHarness> void render(PoseStack stack, Screen screen, int guiX, int guiY, IAssetProvider provider, ProgressBarScreenAddon<T> addon);
 
-        @OnlyIn(Dist.CLIENT)
+        @Environment(EnvType.CLIENT)
         public abstract int getXSize(IAssetProvider provider);
 
-        @OnlyIn(Dist.CLIENT)
+        @Environment(EnvType.CLIENT)
         public abstract int getYSize(IAssetProvider provider);
     }
 }

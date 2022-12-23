@@ -11,13 +11,15 @@ import com.hrznstudio.titanium.annotation.Save;
 import com.hrznstudio.titanium.block.BasicTileBlock;
 import com.hrznstudio.titanium.component.energy.EnergyStorageComponent;
 import com.hrznstudio.titanium.component.progress.ProgressBarComponent;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.energy.CapabilityEnergy;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.EnergyStorageUtil;
 
 import javax.annotation.Nonnull;
 
@@ -30,7 +32,7 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
         super(base, blockEntityType, pos, state);
         this.addProgressBar(progressBar = getProgressBar()
                 .setComponentHarness(this.getSelf())
-                .setCanIncrease(tileEntity -> !isSmart() || this.getEnergyCapacity() - this.getEnergyStorage().getEnergyStored() >= getEnergyProducedEveryTick())
+                .setCanIncrease(tileEntity -> !isSmart() || this.getEnergyCapacity() - this.getEnergyStorage().getAmount() >= getEnergyProducedEveryTick())
                 .setIncreaseType(false)
                 .setOnStart(() -> {
                     progressBar.setMaxProgress(consumeFuel());
@@ -38,7 +40,7 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
                     markForUpdate();
                 })
                 .setCanReset(tileEntity -> canStart() && progressBar.getProgress() == 0)
-                .setOnTickWork(() -> this.getEnergyStorage().setEnergyStored(getEnergyProducedEveryTick() + this.getEnergyStorage().getEnergyStored()))
+                .setOnTickWork(() -> this.getEnergyStorage().setEnergyStored(getEnergyProducedEveryTick() + this.getEnergyStorage().getAmount()))
         );
     }
 
@@ -80,7 +82,7 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
      *
      * @return The amount of energy that can be extracted
      */
-    public abstract int getExtractingEnergy();
+    public abstract long getExtractingEnergy();
 
     /**
      * Defines is the generator wastes power when generating or not
@@ -96,11 +98,12 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
         super.serverTick(level, pos, state, blockEntity);
         for (Direction facing : Direction.values()) {
             BlockPos checking = this.worldPosition.relative(facing);
-            BlockEntity checkingTile = this.level.getBlockEntity(checking);
-            if (checkingTile != null) {
-                checkingTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite()).ifPresent(storage -> {
-                    this.getEnergyStorage().extractEnergy(storage.receiveEnergy(this.getEnergyStorage().extractEnergy(this.getExtractingEnergy(), true), false), false);
-                });
+            EnergyStorage storage = EnergyStorage.SIDED.find(this.level, checking, facing.getOpposite());
+            if (storage != null) {
+                try (Transaction t = TransferUtil.getTransaction()) {
+                    EnergyStorageUtil.move(this.getEnergyStorage(), storage, this.getExtractingEnergy(), t);
+                    t.commit();
+                }
             }
         }
     }

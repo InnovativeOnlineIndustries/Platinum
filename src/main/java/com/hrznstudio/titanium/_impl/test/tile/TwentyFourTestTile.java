@@ -15,6 +15,8 @@ import com.hrznstudio.titanium.block.tile.PoweredTile;
 import com.hrznstudio.titanium.client.screen.addon.WidgetScreenAddon;
 import com.hrznstudio.titanium.component.inventory.InventoryComponent;
 import com.hrznstudio.titanium.component.progress.ProgressBarComponent;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.VolumeSlider;
@@ -27,8 +29,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -60,7 +62,7 @@ public class TwentyFourTestTile extends PoweredTile<TwentyFourTestTile> {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void initClient() {
         super.initClient();
         this.addGuiAddonFactory(() -> new WidgetScreenAddon(30, 185, new VolumeSlider(Minecraft.getInstance(), 0, 0, SoundSource.HOSTILE, 120)));
@@ -77,7 +79,10 @@ public class TwentyFourTestTile extends PoweredTile<TwentyFourTestTile> {
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state, TwentyFourTestTile blockEntity) {
         super.serverTick(level, pos, state, blockEntity);
-        this.getEnergyStorage().receiveEnergy(10, false);
+        try (Transaction t = TransferUtil.getTransaction()) {
+            this.getEnergyStorage().insert(10, t);
+            t.commit();
+        }
         markForUpdate();
     }
 /*

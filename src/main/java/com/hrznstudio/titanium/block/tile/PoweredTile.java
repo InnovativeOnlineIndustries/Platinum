@@ -18,20 +18,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 public abstract class PoweredTile<T extends PoweredTile<T>> extends ActiveTile<T> {
     @Save
     private final EnergyStorageComponent<T> energyStorage;
-    private final LazyOptional<IEnergyStorage> lazyEnergyStorage = LazyOptional.of(this::getEnergyStorage);
 
     private boolean showEnergy = true;
 
@@ -75,22 +69,7 @@ public abstract class PoweredTile<T extends PoweredTile<T>> extends ActiveTile<T
         return containerAddons;
     }
 
-    @Nonnull
-    @Override
-    public <U> LazyOptional<U> getCapability(@Nonnull Capability<U> cap, @Nullable Direction side) {
-        if (cap == CapabilityEnergy.ENERGY) {
-            return lazyEnergyStorage.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
     public void setShowEnergy(boolean showEnergy) {
         this.showEnergy = showEnergy;
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        lazyEnergyStorage.invalidate();
     }
 }

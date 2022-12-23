@@ -22,13 +22,14 @@ import com.hrznstudio.titanium.component.inventory.InventoryComponent;
 import com.hrznstudio.titanium.component.inventory.SidedInventoryComponent;
 import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.util.LangUtil;
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.util.NBTSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -58,7 +59,7 @@ public class LockableInventoryBundle<T extends BasicTile & IComponentHarness> im
         this.isLocked = isLocked;
         this.buttonAddon = new ButtonComponent(lockPosX, lockPosY, 14,14){
             @Override
-            @OnlyIn(Dist.CLIENT)
+            @Environment(EnvType.CLIENT)
             public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
                 return Collections.singletonList(() -> new StateButtonAddon(buttonAddon,
                     new StateButtonInfo(0, AssetTypes.BUTTON_UNLOCKED, ChatFormatting.GOLD + LangUtil.getString("tooltip.titanium.locks") +  ChatFormatting.WHITE +  " " + LangUtil.getString("tooltip.titanium.facing_handler." + inventory.getName().toLowerCase())),
@@ -81,7 +82,7 @@ public class LockableInventoryBundle<T extends BasicTile & IComponentHarness> im
 
     @Nonnull
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         return inventory instanceof SidedInventoryComponent ? Collections.singletonList(() -> new LockableOverlayAddon((SidedInventoryComponent) inventory, this.lockPosX, this.lockPosY)) : Collections.emptyList();
     }
@@ -106,7 +107,7 @@ public class LockableInventoryBundle<T extends BasicTile & IComponentHarness> im
         compoundNBT.putBoolean("Locked", this.isLocked);
         ListTag nbt = new ListTag();
         for (ItemStack stack : this.filter) {
-            nbt.add(stack.serializeNBT());
+            nbt.add(NBTSerializer.serializeNBT(stack));
         }
         compoundNBT.put("Filter", nbt);
         return compoundNBT;

@@ -7,14 +7,14 @@
 
 package com.hrznstudio.titanium.registry;
 
+import io.github.fabricators_of_create.porting_lib.util.LazyRegistrar;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -63,15 +63,15 @@ public class BlockRegistryObjectGroup<B extends Block, I extends Item, T extends
         return Objects.requireNonNull(tileEntity).get();
     }
 
-    public BlockRegistryObjectGroup<B, I, ?> register(DeferredRegister<Block> blockRegistry, DeferredRegister<Item> itemRegistry) {
+    public BlockRegistryObjectGroup<B, I, ?> register(LazyRegistrar<Block> blockRegistry, LazyRegistrar<Item> itemRegistry) {
         block = blockRegistry.register(name, blockCreator);
         item = itemRegistry.register(name, () -> itemCreator.apply(this.getBlock()));
         return this;
     }
 
-    public BlockRegistryObjectGroup<B, I, T> register(DeferredRegister<Block> blockRegistry,
-                                                      DeferredRegister<Item> itemRegistry,
-                                                      DeferredRegister<BlockEntityType<?>> tileEntityTypeRegistry) {
+    public BlockRegistryObjectGroup<B, I, T> register(LazyRegistrar<Block> blockRegistry,
+                                                      LazyRegistrar<Item> itemRegistry,
+                                                      LazyRegistrar<BlockEntityType<?>> tileEntityTypeRegistry) {
         this.register(blockRegistry, itemRegistry);
         if (tileSupplier != null) {
             //noinspection ConstantConditions

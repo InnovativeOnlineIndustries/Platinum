@@ -8,11 +8,9 @@
 package com.hrznstudio.titanium.container.referenceholder;
 
 import com.hrznstudio.titanium.component.fluid.FluidTankComponent;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import net.minecraft.core.Registry;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistry;
 
 public class FluidTankReferenceHolder implements ContainerData {
     private final FluidTankComponent<?> fluidTank;
@@ -29,9 +27,9 @@ public class FluidTankReferenceHolder implements ContainerData {
         if (fluidStack.isEmpty()) {
             return -1;
         } else if (index == 0) {
-            return ((ForgeRegistry<Fluid>) ForgeRegistries.FLUIDS).getID(fluidStack.getFluid());
+            return Registry.FLUID.getId(fluidStack.getFluid());
         } else {
-            return fluidStack.getAmount();
+            return (int) fluidStack.getAmount();
         }
     }
 
@@ -44,9 +42,9 @@ public class FluidTankReferenceHolder implements ContainerData {
         }
 
         if (fluidAmount >= 0 && fluidId >= 0) {
-            fluidTank.setFluidStack(new FluidStack(((ForgeRegistry<Fluid>) ForgeRegistries.FLUIDS).getValue(fluidId), fluidAmount));
+            fluidTank.setFluid(new FluidStack(Registry.FLUID.byId(fluidId), fluidAmount));
         } else {
-            fluidTank.setFluidStack(FluidStack.EMPTY);
+            fluidTank.setFluid(FluidStack.EMPTY);
         }
     }
 

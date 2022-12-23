@@ -11,6 +11,8 @@ import com.hrznstudio.titanium._impl.creative.CreativeFEGeneratorBlock;
 import com.hrznstudio.titanium.block.BasicTileBlock;
 import com.hrznstudio.titanium.block.tile.PoweredTile;
 import com.hrznstudio.titanium.component.energy.EnergyStorageComponent;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -19,7 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.energy.CapabilityEnergy;
+import team.reborn.energy.api.EnergyStorage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -33,11 +35,17 @@ public class CreativeFEGeneratorTile extends PoweredTile<CreativeFEGeneratorTile
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state, CreativeFEGeneratorTile blockEntity) {
         super.serverTick(level, pos, state, blockEntity);
-        this.getEnergyStorage().receiveEnergy(Integer.MAX_VALUE, false);
-        for (Direction direction : Direction.values()) {
-            BlockEntity tile = this.level.getBlockEntity(this.getBlockPos().relative(direction));
-            if (tile != null)
-                tile.getCapability(CapabilityEnergy.ENERGY, direction.getOpposite()).ifPresent(iEnergyStorage -> iEnergyStorage.receiveEnergy(Integer.MAX_VALUE, false));
+        try (Transaction t = TransferUtil.getTransaction()) {
+            this.getEnergyStorage().insert(Long.MAX_VALUE, t);
+            for (Direction direction : Direction.values()) {
+                BlockEntity tile = this.level.getBlockEntity(this.getBlockPos().relative(direction));
+                if (tile != null) {
+                    EnergyStorage iEnergyStorage = EnergyStorage.SIDED.find(this.level, this.getBlockPos(), direction.getOpposite());
+                    if (iEnergyStorage != null)
+                        iEnergyStorage.insert(Long.MAX_VALUE, t);
+                }
+            }
+            t.commit();
         }
         markForUpdate();
     }

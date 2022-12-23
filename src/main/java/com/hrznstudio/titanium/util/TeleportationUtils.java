@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.util;
 
+import io.github.fabricators_of_create.porting_lib.extensions.ITeleporter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.resources.ResourceKey;
@@ -16,7 +17,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.ITeleporter;
 
 import java.util.List;
 import java.util.function.Function;

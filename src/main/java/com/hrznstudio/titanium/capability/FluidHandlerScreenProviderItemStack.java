@@ -10,19 +10,25 @@ package com.hrznstudio.titanium.capability;
 import com.hrznstudio.titanium.api.IFactory;
 import com.hrznstudio.titanium.api.client.IScreenAddon;
 import com.hrznstudio.titanium.api.client.IScreenAddonProvider;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantItemStorage;
+import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FluidHandlerScreenProviderItemStack extends FluidHandlerItemStack implements IScreenAddonProvider, IFluidTank {
+public class FluidHandlerScreenProviderItemStack extends SingleVariantItemStorage<FluidVariant> implements IScreenAddonProvider {
+    private final ContainerItemContext context;
+    protected long capacity;
 
-    public FluidHandlerScreenProviderItemStack(@Nonnull ItemStack container, int capacity) {
-        super(container, capacity);
+    public FluidHandlerScreenProviderItemStack(@Nonnull ContainerItemContext context, long capacity) {
+        super(context);
+        this.context = context;
+        this.capacity = capacity;
     }
 
     @Nonnull
@@ -31,18 +37,40 @@ public class FluidHandlerScreenProviderItemStack extends FluidHandlerItemStack i
         return new ArrayList<>();
     }
 
-    @Override
-    public int getFluidAmount() {
-        return this.getFluid().getAmount();
+    public FluidStack getFluid() {
+        CompoundTag tagCompound = context.getItemVariant().getNbt();
+        if (tagCompound == null || !tagCompound.contains("Fluid"))
+            return FluidStack.EMPTY;
+        return FluidStack.loadFluidStackFromNBT(tagCompound.getCompound("Fluid"));
     }
 
     @Override
-    public int getCapacity() {
-        return this.getTankCapacity(1);
+    protected FluidVariant getBlankResource() {
+        return FluidVariant.blank();
     }
 
     @Override
-    public boolean isFluidValid(FluidStack stack) {
-        return this.isFluidValid(1, stack);
+    protected FluidVariant getResource(ItemVariant currentVariant) {
+        return getFluid().getType();
+    }
+
+    @Override
+    protected long getAmount(ItemVariant currentVariant) {
+        return getFluid().getAmount();
+    }
+
+    @Override
+    protected long getCapacity(FluidVariant variant) {
+        return capacity;
+    }
+
+    @Override
+    protected ItemVariant getUpdatedVariant(ItemVariant currentVariant, FluidVariant newResource, long newAmount) {
+        return currentVariant;
+    }
+
+    @Override
+    public long getCapacity() {
+        return this.capacity;
     }
 }

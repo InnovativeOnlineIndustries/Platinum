@@ -7,11 +7,12 @@
 
 package com.hrznstudio.titanium.api.capability;
 
+import dev.onyxstudios.cca.api.v3.component.Component;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Supplier;
 
-public interface IStackHolder {
+public interface IStackHolder extends Component {
 
     Supplier<ItemStack> getHolder();
 

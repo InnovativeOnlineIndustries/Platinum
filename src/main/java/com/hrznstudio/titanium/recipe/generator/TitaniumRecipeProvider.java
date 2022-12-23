@@ -7,20 +7,20 @@
 
 package com.hrznstudio.titanium.recipe.generator;
 
-import net.minecraft.data.DataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeProvider;
 
 import java.util.function.Consumer;
 
-public abstract class TitaniumRecipeProvider extends RecipeProvider {
+public abstract class TitaniumRecipeProvider extends FabricRecipeProvider {
 
-    public TitaniumRecipeProvider(DataGenerator generatorIn) {
+    public TitaniumRecipeProvider(FabricDataGenerator generatorIn) {
         super(generatorIn);
     }
 
     @Override
-    protected void buildCraftingRecipes(Consumer<FinishedRecipe> p_176532_) {
+    protected void generateRecipes(Consumer<FinishedRecipe> p_176532_) {
         register(p_176532_);
     }
 

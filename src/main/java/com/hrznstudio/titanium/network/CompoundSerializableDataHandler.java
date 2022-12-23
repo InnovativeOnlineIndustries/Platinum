@@ -10,7 +10,9 @@ package com.hrznstudio.titanium.network;
 import com.google.gson.JsonObject;
 import com.hrznstudio.titanium.network.locator.LocatorFactory;
 import com.hrznstudio.titanium.network.locator.LocatorInstance;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -20,8 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -68,7 +68,7 @@ public class CompoundSerializableDataHandler {
         map(LocatorInstance.class, LocatorFactory::readPacketBuffer, LocatorFactory::writePacketBuffer);
         map(Ingredient.Value.class, CollectionItemList::new, CollectionItemList::serializeBuffer);
         map(Ingredient.class, Ingredient::fromNetwork, (buf, ingredient) -> ingredient.toNetwork(buf));
-        map(Block.class, buf -> ForgeRegistries.BLOCKS.getValue(buf.readResourceLocation()), (buf, block) -> buf.writeResourceLocation(ForgeRegistries.BLOCKS.getKey(block)));
+        map(Block.class, buf -> Registry.BLOCK.get(buf.readResourceLocation()), (buf, block) -> buf.writeResourceLocation(Registry.BLOCK.getKey(block)));
         map(Ingredient.Value[].class, CompoundSerializableDataHandler::readIItemListArray, CompoundSerializableDataHandler::writeIItemListArray);
         map(Ingredient[].class, CompoundSerializableDataHandler::readIngredientArray, CompoundSerializableDataHandler::writeIngredientArray);
         map(ResourceKey.class, CompoundSerializableDataHandler::readRegistryKey, CompoundSerializableDataHandler::writeRegistryKey);

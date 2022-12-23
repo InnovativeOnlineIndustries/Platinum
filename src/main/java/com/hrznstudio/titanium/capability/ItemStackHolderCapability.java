@@ -8,6 +8,7 @@
 package com.hrznstudio.titanium.capability;
 
 import com.hrznstudio.titanium.api.capability.IStackHolder;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Supplier;
@@ -30,4 +31,9 @@ public class ItemStackHolderCapability implements IStackHolder {
         this.holder = stack;
     }
 
+    @Override
+    public void readFromNbt(CompoundTag tag) {}
+
+    @Override
+    public void writeToNbt(CompoundTag tag) {}
 }

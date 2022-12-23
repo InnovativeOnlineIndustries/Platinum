@@ -1,0 +1,8 @@
+accessWidener v2 named
+transitive-accessible method net/minecraft/client/gui/components/EditBox isEditable ()Z
+transitive-mutable field net/minecraft/world/inventory/Slot x I
+transitive-mutable field net/minecraft/world/inventory/Slot y I
+
+# Fabric
+transitive-accessible field net/minecraft/world/item/crafting/RecipeManager recipes Ljava/util/Map;
+transitive-accessible field net/minecraft/core/MappedRegistry tags Ljava/util/Map;

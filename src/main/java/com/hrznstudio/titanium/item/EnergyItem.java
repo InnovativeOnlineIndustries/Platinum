@@ -7,26 +7,22 @@
 
 package com.hrznstudio.titanium.item;
 
-import com.hrznstudio.titanium.energy.EnergyStorageItemStack;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleBatteryItem;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
-public class EnergyItem extends BasicItem {
-    private final int capacity;
-    private final int input;
-    private final int output;
+public class EnergyItem extends BasicItem implements SimpleBatteryItem {
+    private final long capacity;
+    private final long input;
+    private final long output;
 
     public EnergyItem(String name, int capacity, int input, int output, Properties properties) {
         super(name, properties.stacksTo(1));
@@ -39,15 +35,15 @@ public class EnergyItem extends BasicItem {
         this(name, capacity, throughput, throughput, properties);
     }
 
-    public int getCapacity() {
+    public long getEnergyCapacity() {
         return capacity;
     }
 
-    public int getInput() {
+    public long getEnergyMaxInput() {
         return input;
     }
 
-    public int getOutput() {
+    public long getEnergyMaxOutput() {
         return output;
     }
 
@@ -64,9 +60,9 @@ public class EnergyItem extends BasicItem {
                 tooltip.add(
                     Component.empty().withStyle(ChatFormatting.YELLOW)
                         .append("Energy: ").withStyle(ChatFormatting.RED)
-                        .append(String.valueOf(storage.getEnergyStored())).withStyle(ChatFormatting.YELLOW)
+                        .append(String.valueOf(storage.getAmount())).withStyle(ChatFormatting.YELLOW)
                         .append("/").withStyle(ChatFormatting.RED)
-                        .append(String.valueOf(storage.getMaxEnergyStored())).withStyle(ChatFormatting.RESET)));
+                        .append(String.valueOf(storage.getCapacity())).withStyle(ChatFormatting.RESET)));
         }
     }
 
@@ -78,7 +74,7 @@ public class EnergyItem extends BasicItem {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return (int) Math.round(getEnergyStorage(stack).map(storage -> 1 - (double) storage.getEnergyStored() / (double) storage.getMaxEnergyStored()).orElse(0.0) * 13);
+        return (int) Math.round(getEnergyStorage(stack).map(storage -> 1 - (double) storage.getAmount() / (double) storage.getCapacity()).orElse(0.0) * 13);
     }
 
     @Override
@@ -86,30 +82,7 @@ public class EnergyItem extends BasicItem {
         return 0x00E93232;
     }
 
-    public LazyOptional<IEnergyStorage> getEnergyStorage(ItemStack stack) {
-        return stack.getCapability(CapabilityEnergy.ENERGY, null);
-    }
-
-    @Nullable
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        return new CapabilityProvider(new EnergyStorageItemStack(stack, capacity, input, output));
-    }
-
-    public static class CapabilityProvider implements ICapabilityProvider {
-        private LazyOptional<IEnergyStorage> energyCap;
-
-        public CapabilityProvider(EnergyStorageItemStack energy) {
-            this.energyCap = LazyOptional.of(() -> energy);
-        }
-
-        @Nonnull
-        @Override
-        public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-            if (cap == CapabilityEnergy.ENERGY) {
-                return energyCap.cast();
-            }
-            return LazyOptional.empty();
-        }
+    public Optional<EnergyStorage> getEnergyStorage(ItemStack stack) {
+        return Optional.ofNullable(EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack)));
     }
 }

@@ -7,34 +7,48 @@
 
 package com.hrznstudio.titanium.recipe.condition;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.hrznstudio.titanium.Titanium;
+import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraft.util.GsonHelper;
 
 
-public class ContentExistsCondition implements ICondition {
+public class ContentExistsCondition implements ConditionJsonProvider {
     public static final ResourceLocation NAME = new ResourceLocation(Titanium.MODID, "content_exists");
 
-    private final IForgeRegistry<?> forgeRegistry;
+    private final Registry<?> forgeRegistry;
     private final ResourceLocation contentName;
 
-    public ContentExistsCondition(IForgeRegistry<?> forgeRegistry, ResourceLocation contentName) {
+    public ContentExistsCondition(Registry<?> forgeRegistry, ResourceLocation contentName) {
         this.forgeRegistry = forgeRegistry;
         this.contentName = contentName;
     }
 
     @Override
-    public ResourceLocation getID() {
-        return NAME;
+    public void writeParameters(JsonObject json) {
+        json.addProperty("registry", getForgeRegistry().key().location().toString());
+        json.addProperty("name", getContentName().toString());
     }
 
     @Override
-    public boolean test(IContext context) {
-        return forgeRegistry.containsKey(contentName);
+    public ResourceLocation getConditionId() {
+        return NAME;
     }
 
-    public IForgeRegistry<?> getForgeRegistry() {
+    public static boolean test(JsonObject json) {
+        String registryName = GsonHelper.getAsString(json, "registry");
+        Registry<?> forgeRegistry = Registry.REGISTRY.get(new ResourceLocation(registryName));
+        if (forgeRegistry == null) {
+            throw new JsonParseException("Didn't Find Registry for registry: " + registryName);
+        }
+
+        return forgeRegistry.containsKey(new ResourceLocation(GsonHelper.getAsString(json, "name")));
+    }
+
+    public Registry<?> getForgeRegistry() {
         return forgeRegistry;
     }
 

@@ -10,13 +10,11 @@ package com.hrznstudio.titanium.recipe.serializer;
 import com.google.gson.JsonObject;
 import com.hrznstudio.titanium.recipe.generator.IJSONGenerator;
 import com.hrznstudio.titanium.recipe.generator.IJsonFile;
+import net.fabricmc.fabric.api.resource.conditions.v1.ConditionJsonProvider;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
-import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
 
@@ -41,7 +39,7 @@ public abstract class SerializableRecipe implements Recipe<Container>, IJsonFile
     @Nullable
     @Override
     public String getRecipeSubfolder() {
-        return new ResourceLocation(ForgeRegistries.RECIPE_SERIALIZERS.getKey(getSerializer()).toString()).getPath();
+        return new ResourceLocation(Registry.RECIPE_SERIALIZER.getKey(getSerializer()).toString()).getPath();
     }
 
     @Override
@@ -53,7 +51,7 @@ public abstract class SerializableRecipe implements Recipe<Container>, IJsonFile
     }
 
     @Nullable
-    public Pair<ICondition, IConditionSerializer> getOutputCondition(){
+    public ConditionJsonProvider getOutputCondition(){
         return null;
     }
 

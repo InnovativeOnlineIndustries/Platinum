@@ -7,8 +7,12 @@
 
 package com.hrznstudio.titanium.recipe.generator;
 
+import com.hrznstudio.titanium.fabric.ItemExistsCondition;
+import io.github.fabricators_of_create.porting_lib.data.ConditionalRecipe;
+import net.fabricmc.fabric.api.resource.conditions.v1.DefaultResourceConditions;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.core.Registry;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
@@ -16,13 +20,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.ConditionalRecipe;
-import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.function.Consumer;
 
-public class TitaniumShapedRecipeBuilder extends ShapedRecipeBuilder implements IConditionBuilder {
+public class TitaniumShapedRecipeBuilder extends ShapedRecipeBuilder {
 
     private ResourceLocation resourceLocation;
     private ConditionalRecipe.Builder conditional;
@@ -31,11 +32,11 @@ public class TitaniumShapedRecipeBuilder extends ShapedRecipeBuilder implements 
 
     public TitaniumShapedRecipeBuilder(ItemLike resultIn, int countIn) {
         super(resultIn, countIn);
-        this.resourceLocation = ForgeRegistries.ITEMS.getKey(resultIn.asItem());
+        this.resourceLocation = Registry.ITEM.getKey(resultIn.asItem());
         this.build = false;
         this.conditional = ConditionalRecipe.builder().addCondition(
-                and(
-                        itemExists(resourceLocation.getNamespace(), resourceLocation.getPath())
+                DefaultResourceConditions.and(
+                        new ItemExistsCondition(resourceLocation.getNamespace(), resourceLocation.getPath())
                 ));
     }
 

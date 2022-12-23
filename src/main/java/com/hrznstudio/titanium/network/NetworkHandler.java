@@ -7,15 +7,12 @@
 
 package com.hrznstudio.titanium.network;
 
+import me.pepperbell.simplenetworking.SimpleChannel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -26,12 +23,7 @@ public class NetworkHandler {
 
     public NetworkHandler(String modid) {
         i = 0;
-        network = NetworkRegistry.newSimpleChannel(
-                new ResourceLocation(modid, "network"),
-                () -> "1.0",
-                s -> true,
-                s -> true
-        );
+        network = new SimpleChannel(new ResourceLocation(modid, "network"));
     }
 
     public SimpleChannel get() {
@@ -39,7 +31,7 @@ public class NetworkHandler {
     }
 
     public <REQ extends Message> void registerMessage(Class<REQ> message) {
-        network.registerMessage(i++, message, Message::toBytes,
+        network.registerS2CPacket(message, i++,
                 buffer -> {
                     try {
                         REQ req = message.getConstructor().newInstance();
@@ -48,17 +40,12 @@ public class NetworkHandler {
                     } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
-                },
-                (req, contextSupplier) -> {
-                    NetworkEvent.Context context = contextSupplier.get();
-                    req.handleMessage(context);
-                    context.setPacketHandled(true);
                 });
     }
 
     public void sendToNearby(Level world, BlockPos pos, int distance, Message message) {
         world.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(distance)).forEach(playerEntity -> {
-            network.sendTo(message, playerEntity.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+            network.sendToClient(message, playerEntity);
         });
     }
 }

@@ -17,14 +17,15 @@ import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.container.addon.IntReferenceHolderAddon;
 import com.hrznstudio.titanium.container.referenceholder.FunctionReferenceHolder;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.energy.EnergyStorage;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class EnergyStorageComponent<T extends IComponentHarness> extends EnergyStorage implements
+public class EnergyStorageComponent<T extends IComponentHarness> extends SimpleEnergyStorage implements
     IScreenAddonProvider, IContainerAddonProvider {
 
     private final int xPos;
@@ -32,50 +33,50 @@ public class EnergyStorageComponent<T extends IComponentHarness> extends EnergyS
 
     protected T componentHarness;
 
-    public EnergyStorageComponent(int maxCapacity, int xPos, int yPos) {
+    public EnergyStorageComponent(long maxCapacity, int xPos, int yPos) {
         this(maxCapacity, maxCapacity, xPos, yPos);
     }
 
-    public EnergyStorageComponent(int maxCapacity, int maxIO, int xPos, int yPos) {
+    public EnergyStorageComponent(long maxCapacity, long maxIO, int xPos, int yPos) {
         this(maxCapacity, maxIO, maxIO, xPos, yPos);
     }
 
-    public EnergyStorageComponent(int maxCapacity, int maxReceive, int maxExtract, int xPos, int yPos) {
+    public EnergyStorageComponent(long maxCapacity, long maxReceive, long maxExtract, int xPos, int yPos) {
         super(maxCapacity, maxReceive, maxExtract);
         this.xPos = xPos;
         this.yPos = yPos;
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate) {
-        int amount = super.receiveEnergy(maxReceive, simulate);
-        if (!simulate && amount > 0) {
+    public long insert(long maxAmount, TransactionContext transaction) {
+        long amount = super.insert(maxAmount, transaction);
+        if (amount > 0) {
             this.update();
         }
         return amount;
     }
 
     @Override
-    public int extractEnergy(int maxExtract, boolean simulate) {
-        int amount = super.extractEnergy(maxExtract, simulate);
-        if (!simulate && amount > 0) {
+    public long extract(long maxAmount, TransactionContext transaction) {
+        long amount = super.extract(maxAmount, transaction);
+        if (amount > 0) {
             this.update();
         }
         return amount;
     }
 
-    public void setEnergyStored(int energy) {
-        if (energy > this.getMaxEnergyStored()) {
-            this.energy = this.getMaxEnergyStored();
+    public void setEnergyStored(long energy) {
+        if (energy > this.getCapacity()) {
+            this.amount = this.getCapacity();
         } else {
-            this.energy = Math.max(energy, 0);
+            this.amount = Math.max(energy, 0);
         }
         this.update();
     }
 
     @Override
     @Nonnull
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         return Lists.newArrayList(
             () -> new EnergyBarScreenAddon(xPos, yPos, this)
@@ -86,7 +87,7 @@ public class EnergyStorageComponent<T extends IComponentHarness> extends EnergyS
     @Nonnull
     public List<IFactory<? extends IContainerAddon>> getContainerAddons() {
         return Lists.newArrayList(
-            () -> new IntReferenceHolderAddon(new FunctionReferenceHolder(this::setEnergyStored, this::getEnergyStored))
+            () -> new IntReferenceHolderAddon(new FunctionReferenceHolder(this::setEnergyStored, this::getAmount))
         );
     }
 
@@ -106,6 +107,11 @@ public class EnergyStorageComponent<T extends IComponentHarness> extends EnergyS
 
     public int getY() {
         return yPos;
+    }
+
+    @Override
+    protected void onFinalCommit() {
+        update();
     }
 }
 

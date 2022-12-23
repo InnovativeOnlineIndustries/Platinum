@@ -10,14 +10,13 @@ package com.hrznstudio.titanium.datagenerator.model;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.hrznstudio.titanium.fabric.NonNullLazy;
+import net.minecraft.core.Registry;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
-import net.minecraft.data.HashCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.util.NonNullLazy;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
@@ -41,7 +40,7 @@ public class BlockItemModelGeneratorProvider implements DataProvider {
 
     private static JsonObject createModel(Block block) {
         JsonObject object = new JsonObject();
-        ResourceLocation blockRL = ForgeRegistries.BLOCKS.getKey(block);
+        ResourceLocation blockRL = Registry.BLOCK.getKey(block);
         object.addProperty("parent", blockRL.getNamespace() + ":block/" + blockRL.getPath());
         return object;
     }
@@ -53,7 +52,7 @@ public class BlockItemModelGeneratorProvider implements DataProvider {
         Files.createDirectories(output);
         blocksToProcess.get().forEach(blockBase -> {
             try {
-                try (BufferedWriter bufferedwriter = Files.newBufferedWriter(output.resolve(ForgeRegistries.BLOCKS.getKey(blockBase).getPath() + ".json"))) {
+                try (BufferedWriter bufferedwriter = Files.newBufferedWriter(output.resolve(Registry.BLOCK.getKey(blockBase).getPath() + ".json"))) {
                     bufferedwriter.write(GSON.toJson(createModel(blockBase)));
                 }
             } catch (IOException e) {

@@ -9,8 +9,8 @@ package com.hrznstudio.titanium.reward;
 
 import com.google.gson.JsonParser;
 import com.hrznstudio.titanium.util.URLUtil;
+import net.fabricmc.api.EnvType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
 
 import java.io.IOException;
 import java.net.URL;
@@ -26,10 +26,10 @@ public class Reward {
     private final URL contributorsURL;
     private String unlocalizedName;
     private List<UUID> players;
-    private Supplier<Consumer<Dist>> register;
+    private Supplier<Consumer<EnvType>> register;
     private String[] options;
 
-    public Reward(ResourceLocation resourceLocation, URL contributorsURL, Supplier<Consumer<Dist>> register, String[] options) {
+    public Reward(ResourceLocation resourceLocation, URL contributorsURL, Supplier<Consumer<EnvType>> register, String[] options) {
         this.resourceLocation = resourceLocation;
         this.contributorsURL = contributorsURL;
         this.players = getPlayers(contributorsURL);
@@ -53,7 +53,7 @@ public class Reward {
         return this;
     }
 
-    public void register(Dist dist) {
+    public void register(EnvType dist) {
         this.register.get().accept(dist);
     }
 

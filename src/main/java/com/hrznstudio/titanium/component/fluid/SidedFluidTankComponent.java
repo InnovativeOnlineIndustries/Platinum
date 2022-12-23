@@ -18,18 +18,20 @@ import com.hrznstudio.titanium.component.IComponentHarness;
 import com.hrznstudio.titanium.component.sideness.IFacingComponent;
 import com.hrznstudio.titanium.component.sideness.SidedComponentManager;
 import com.hrznstudio.titanium.util.FacingUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTank;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -105,12 +107,12 @@ public class SidedFluidTankComponent<T extends IComponentHarness> extends FluidT
                 Direction real = FacingUtil.getFacingFromSide(blockFacing, sideness);
                 BlockEntity entity = world.getBlockEntity(pos.relative(real));
                 if (entity != null) {
-                    boolean hasWorked = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, real.getOpposite())
-                            .map(iFluidHandler -> transfer(this, iFluidHandler, workAmount))
-                            .orElse(false);
-                    if (hasWorked) {
-                        return true;
-                    }
+//                    boolean hasWorked = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, real.getOpposite()) TODO: PORT
+//                            .map(iFluidHandler -> transfer(this, iFluidHandler, workAmount))
+//                            .orElse(false);
+//                    if (hasWorked) {
+//                        return true;
+//                    }
                 }
             }
         }
@@ -119,12 +121,12 @@ public class SidedFluidTankComponent<T extends IComponentHarness> extends FluidT
                 Direction real = FacingUtil.getFacingFromSide(blockFacing, sideness);
                 BlockEntity entity = world.getBlockEntity(pos.relative(real));
                 if (entity != null) {
-                    boolean hasWorked = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, real.getOpposite())
-                            .map(iFluidHandler -> transfer(iFluidHandler, this, workAmount))
-                            .orElse(false);
-                    if (hasWorked) {
-                        return true;
-                    }
+//                    boolean hasWorked = entity.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, real.getOpposite()) TODO: PORT
+//                            .map(iFluidHandler -> transfer(iFluidHandler, this, workAmount))
+//                            .orElse(false);
+//                    if (hasWorked) {
+//                        return true;
+//                    }
                 }
             }
         }
@@ -152,17 +154,17 @@ public class SidedFluidTankComponent<T extends IComponentHarness> extends FluidT
         return this;
     }
 
-    private boolean transfer(IFluidHandler from, IFluidHandler to, int workAmount) {
-        FluidStack stack = from.drain(workAmount * 100, FluidAction.SIMULATE);
-        if (!stack.isEmpty()) {
-            stack = from.drain(to.fill(stack, FluidAction.EXECUTE), FluidAction.EXECUTE);
-            return !stack.isEmpty();
+    private boolean transfer(Storage<FluidVariant> from, Storage<FluidVariant> to, long workAmount) {
+        long amountMoved = 0;
+        try (Transaction t = TransferUtil.getTransaction()) {
+            amountMoved = StorageUtil.move(from, to, fluidVariant -> true, workAmount * 100, t);
+            t.commit();
         }
-        return false;
+        return amountMoved != 0;
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         List<IFactory<? extends IScreenAddon>> addons = super.getScreenAddons();
         if (hasFacingAddon)

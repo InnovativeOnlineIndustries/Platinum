@@ -17,11 +17,11 @@ import com.hrznstudio.titanium.component.sideness.IFacingComponent;
 import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.util.FacingUtil;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -108,7 +108,7 @@ public class MultiTankComponent<T extends IComponentHarness> implements IScreenA
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         List<IFactory<? extends IScreenAddon>> addons = new ArrayList<>();
         for (FluidTankComponent<T> tank : tanks) {
@@ -126,69 +126,14 @@ public class MultiTankComponent<T extends IComponentHarness> implements IScreenA
         return addons;
     }
 
-    public static class MultiTankCapabilityHandler<T extends IComponentHarness> implements IFluidHandler {
-
-        private final List<FluidTankComponent<T>> tanks;
+    public static class MultiTankCapabilityHandler<T extends IComponentHarness> extends CombinedStorage<FluidVariant, FluidTankComponent<T>> {
 
         public MultiTankCapabilityHandler(List<FluidTankComponent<T>> tanks) {
-            this.tanks = tanks;
+            super(tanks);
         }
 
         public boolean isEmpty() {
-            return tanks.isEmpty();
-        }
-
-        @Override
-        public int getTanks() {
-            return tanks.size();
-        }
-
-        @Nonnull
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            return tanks.get(tank).getFluid();
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return tanks.get(tank).getTankCapacity(tank);
-        }
-
-        @Override
-        public boolean isFluidValid(int tank, @Nonnull FluidStack stack) {
-            return tanks.get(tank).isFluidValid(stack);
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            for (FluidTankComponent<T> tank : tanks) {
-                if (tank.fill(resource, FluidAction.SIMULATE) != 0) {
-                    return tank.fill(resource, action);
-                }
-            }
-            return 0;
-        }
-
-        @Nonnull
-        @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            for (FluidTankComponent<T> tank : tanks) {
-                if (!tank.drain(resource, FluidAction.SIMULATE).isEmpty()) {
-                    return tank.drain(resource, action);
-                }
-            }
-            return FluidStack.EMPTY;
-        }
-
-        @Nonnull
-        @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            for (FluidTankComponent<T> tank : tanks) {
-                if (!tank.drain(maxDrain, FluidAction.SIMULATE).isEmpty()) {
-                    return tank.drain(maxDrain, action);
-                }
-            }
-            return FluidStack.EMPTY;
+            return parts.isEmpty();
         }
     }
 }

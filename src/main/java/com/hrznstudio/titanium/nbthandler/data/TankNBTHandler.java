@@ -8,8 +8,8 @@
 package com.hrznstudio.titanium.nbthandler.data;
 
 import com.hrznstudio.titanium.api.INBTHandler;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTank;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

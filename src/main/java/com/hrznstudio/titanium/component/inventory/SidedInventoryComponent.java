@@ -17,6 +17,12 @@ import com.hrznstudio.titanium.component.IComponentHarness;
 import com.hrznstudio.titanium.component.sideness.IFacingComponent;
 import com.hrznstudio.titanium.component.sideness.SidedComponentManager;
 import com.hrznstudio.titanium.util.FacingUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemHandlerHelper;
+import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,11 +30,8 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -127,12 +130,12 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
                 Direction real = FacingUtil.getFacingFromSide(blockFacing, sideness);
                 BlockEntity entity = world.getBlockEntity(pos.relative(real));
                 if (entity != null) {
-                    boolean hasWorked = entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, real.getOpposite())
-                            .map(iItemHandler -> transfer(sideness, this, iItemHandler, workAmount))
-                            .orElse(false);
-                    if (hasWorked) {
-                        return true;
-                    }
+//                    boolean hasWorked = entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, real.getOpposite()) TODO: PORT
+//                            .map(iItemHandler -> transfer(sideness, this, iItemHandler, workAmount))
+//                            .orElse(false);
+//                    if (hasWorked) {
+//                        return true;
+//                    }
                 }
             }
         }
@@ -141,12 +144,12 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
                 Direction real = FacingUtil.getFacingFromSide(blockFacing, sideness);
                 BlockEntity entity = world.getBlockEntity(pos.relative(real));
                 if (entity != null) {
-                    boolean hasWorked = entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, real.getOpposite())
-                            .map(iItemHandler -> transfer(sideness, iItemHandler, this, workAmount))
-                            .orElse(false);
-                    if (hasWorked) {
-                        return true;
-                    }
+//                    boolean hasWorked = entity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, real.getOpposite()) TODO: PORT
+//                            .map(iItemHandler -> transfer(sideness, iItemHandler, this, workAmount))
+//                            .orElse(false);
+//                    if (hasWorked) {
+//                        return true;
+//                    }
                 }
             }
         }
@@ -196,7 +199,7 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         List<IFactory<? extends IScreenAddon>> addons = super.getScreenAddons();
         if (hasFacingAddon)
@@ -204,30 +207,34 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
         return addons;
     }
 
-    private int getNextSlot(IItemHandler handler, int currentSlot) {
+    private int getNextSlot(SlotExposedStorage handler, int currentSlot) {
         for (int i = currentSlot; i < handler.getSlots(); i++) {
             if (!handler.getStackInSlot(i).isEmpty()) return i;
         }
         return 0;
     }
 
-    private boolean transfer(FacingUtil.Sideness sideness, IItemHandler from, IItemHandler to, int workAmount) {
+    private boolean transfer(FacingUtil.Sideness sideness, SlotExposedStorage from, SlotExposedStorage to, int workAmount) {
         if (from.getSlots() <= 0) return false;
         int slot = slotCache.getOrDefault(sideness, getNextSlot(from, 0));
         if (slot >= from.getSlots()) slot = 0;
-        ItemStack extracted = from.extractItem(slot, workAmount, true);
-        int outSlot = isValidForAnySlot(to, extracted);
-        if (!extracted.isEmpty() && outSlot != -1) {
-            ItemStack returned = to.insertItem(outSlot, extracted, false);
-            return !from.extractItem(slot, extracted.getCount() - returned.getCount(), false).isEmpty();
+        try (Transaction t = TransferUtil.getTransaction()) {
+            long extracted = from.simulateExtract(ItemVariant.of(from.getStackInSlot(slot)), workAmount, t);
+            int outSlot = isValidForAnySlot(to, new ItemStack(from.getStackInSlot(slot).getItem(), (int) extracted));
+            if (extracted >= 0 && outSlot != -1) {
+                long returned = to.insert(ItemVariant.of(to.getStackInSlot(outSlot)), extracted, t);
+                boolean result = from.extract(ItemVariant.of(from.getStackInSlot(slot)), extracted - returned, t) != 0;
+                t.commit();
+                return result;
+            }
+            slotCache.put(sideness, getNextSlot(from, slot + 1));
         }
-        slotCache.put(sideness, getNextSlot(from, slot + 1));
         return false;
     }
 
-    private int isValidForAnySlot(IItemHandler dest, ItemStack stack) {
+    private int isValidForAnySlot(SlotExposedStorage dest, ItemStack stack) {
         for (int i = 0; i < dest.getSlots(); i++) {
-            if (!dest.isItemValid(i, stack)) continue;
+            if (!dest.isItemValid(i, ItemVariant.of(stack), stack.getCount())) continue;
             if (dest.getStackInSlot(i).isEmpty()) return i;
             if (ItemHandlerHelper.canItemStacksStack(dest.getStackInSlot(i), stack) && dest.getStackInSlot(i).getCount() < dest.getSlotLimit(i) && dest.getStackInSlot(i).getCount() < dest.getStackInSlot(i).getMaxStackSize()) {
                 return i;

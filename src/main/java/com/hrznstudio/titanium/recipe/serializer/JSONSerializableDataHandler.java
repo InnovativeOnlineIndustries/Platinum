@@ -15,6 +15,9 @@ import com.google.gson.JsonPrimitive;
 import com.hrznstudio.titanium.Titanium;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
+import io.github.fabricators_of_create.porting_lib.crafting.CraftingHelper;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceKey;
@@ -23,9 +26,6 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -72,7 +72,7 @@ public class JSONSerializableDataHandler {
             return stacks;
         });
         map(ResourceLocation.class, type -> new JsonPrimitive(type.toString()), element -> new ResourceLocation(element.getAsString()));
-        map(Block.class, type -> new JsonPrimitive(ForgeRegistries.BLOCKS.getKey(type).toString()), element -> ForgeRegistries.BLOCKS.getValue(new ResourceLocation(element.getAsString())));
+        map(Block.class, type -> new JsonPrimitive(Registry.BLOCK.getKey(type).toString()), element -> Registry.BLOCK.get(new ResourceLocation(element.getAsString())));
         map(FluidStack.class, JSONSerializableDataHandler::writeFluidStack, JSONSerializableDataHandler::readFluidStack);
 
         map(ResourceKey.class, JSONSerializableDataHandler::writeRegistryKey, JSONSerializableDataHandler::readRegistryKey);
@@ -168,7 +168,7 @@ public class JSONSerializableDataHandler {
             return null;
         }
         JsonObject object = new JsonObject();
-        object.addProperty("item", ForgeRegistries.ITEMS.getKey(stack.getItem()).toString());
+        object.addProperty("item", Registry.ITEM.getKey(stack.getItem()).toString());
         object.addProperty("count", stack.getCount());
         if (stack.hasTag()) {
             object.addProperty("nbt", stack.getTag().toString());
@@ -193,7 +193,7 @@ public class JSONSerializableDataHandler {
     }
 
     public static ItemStack readItemStack(JsonObject object) {
-        ItemStack stack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(object.get("item").getAsString())),
+        ItemStack stack = new ItemStack(Registry.ITEM.get(new ResourceLocation(object.get("item").getAsString())),
                 GsonHelper.getAsInt(object, "count", 1));
         if (object.has("nbt")) {
             try {

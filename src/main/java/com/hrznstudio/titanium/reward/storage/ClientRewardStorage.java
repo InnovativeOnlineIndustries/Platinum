@@ -7,8 +7,8 @@
 
 package com.hrznstudio.titanium.reward.storage;
 
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.HashMap;
 import java.util.UUID;

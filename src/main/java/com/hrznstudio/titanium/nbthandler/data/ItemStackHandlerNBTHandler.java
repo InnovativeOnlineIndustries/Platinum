@@ -9,8 +9,8 @@ package com.hrznstudio.titanium.nbthandler.data;
 
 
 import com.hrznstudio.titanium.api.INBTHandler;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

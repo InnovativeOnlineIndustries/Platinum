@@ -7,11 +7,12 @@
 
 package com.hrznstudio.titanium.config;
 
+import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.annotation.config.ConfigFile;
 import com.hrznstudio.titanium.annotation.config.ConfigVal;
 import com.hrznstudio.titanium.util.AnnotationUtil;
+import net.minecraftforge.api.ModLoadingContext;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.IConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 
@@ -41,14 +42,14 @@ public class AnnotationConfigManager {
             scanClass(configClass, builder, specCache);
         }
         // REGISTERING CONFIG
-        File folder = new File("config" + File.separator + ModLoadingContext.get().getActiveContainer().getModId());
+        File folder = new File("config" + File.separator + Titanium.MODID);
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        String fileName = ModLoadingContext.get().getActiveContainer().getModId() + "/" + (type.fileName.isEmpty() ? ModLoadingContext.get().getActiveContainer().getModId() : type.fileName);
+        String fileName = Titanium.MODID + "/" + (type.fileName.isEmpty() ? Titanium.MODID : type.fileName);
         if (!fileName.endsWith(".toml")) fileName = fileName + ".toml";
         specCache.spec = builder.build();
-        ModLoadingContext.get().registerConfig(type.type, specCache.spec, fileName);
+        ModLoadingContext.registerConfig(Titanium.MODID, type.type, specCache.spec, fileName);
         specCaches.add(specCache);
     }
 
@@ -86,7 +87,7 @@ public class AnnotationConfigManager {
                     }
                 }
             }
-            AnnotationUtil.getFilteredAnnotatedClasses(ConfigFile.Child.class, ModLoadingContext.get().getActiveContainer().getModId()).stream()
+            AnnotationUtil.getFilteredAnnotatedClasses(ConfigFile.Child.class, Titanium.MODID).stream()
                 .filter(aClass -> ((ConfigFile.Child) aClass.getAnnotation(ConfigFile.Child.class)).value().equals(configClass)).forEach(aClass -> scanClass(aClass, builder, specCache));
         } catch (IllegalAccessException e) {
             e.printStackTrace();

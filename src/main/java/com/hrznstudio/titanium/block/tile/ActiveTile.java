@@ -34,6 +34,18 @@ import com.hrznstudio.titanium.network.IButtonHandler;
 import com.hrznstudio.titanium.network.locator.LocatorFactory;
 import com.hrznstudio.titanium.network.locator.instance.TileEntityLocatorInstance;
 import com.hrznstudio.titanium.util.FacingUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
+import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+import io.github.fabricators_of_create.porting_lib.util.NetworkUtil;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SidedStorageBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -55,16 +67,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.network.NetworkHooks;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,7 +78,7 @@ import java.util.List;
 
 public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> implements IScreenAddonProvider,
     ITickableBlockEntity<T>, MenuProvider, IButtonHandler, IFacingComponentHarness, IContainerAddonProvider,
-    IHasAssetProvider {
+    IHasAssetProvider, SidedStorageBlockEntity {
 
     private MultiInventoryComponent<T> multiInventoryComponent;
     private MultiProgressBarHandler<T> multiProgressBarHandler;
@@ -98,7 +102,7 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
     @Override
     @ParametersAreNonnullByDefault
     public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
-        if (multiTankComponent != null && FluidUtil.interactWithFluidHandler(player, hand, multiTankComponent.getCapabilityForSide(null).orElse(new MultiTankComponent.MultiTankCapabilityHandler(new ArrayList<>())))) {
+        if (multiTankComponent != null && FluidStorageUtil.interactWithFluidStorage(multiTankComponent.getCapabilityForSide(null).orElse(new MultiTankComponent.MultiTankCapabilityHandler(new ArrayList<>())), player, hand)) {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
@@ -111,7 +115,7 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
 
     public void openGui(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, this, buffer ->
+            NetworkUtil.openGui((ServerPlayer) player, this, buffer ->
                 LocatorFactory.writePacketBuffer(buffer, new TileEntityLocatorInstance(this.worldPosition)));
         }
     }
@@ -171,22 +175,24 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void initClient() {
         super.initClient();
         this.bundles.stream().forEach(iComponentBundle -> iComponentBundle.getScreenAddons().forEach(this::addGuiAddonFactory));
     }
 
-    @Nonnull
     @Override
-    public <U> LazyOptional<U> getCapability(@Nonnull Capability<U> cap, @Nullable Direction side) {
-        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && multiInventoryComponent != null) {
-            return multiInventoryComponent.getCapabilityForSide(FacingUtil.getFacingRelative(this.getFacingDirection(), side)).cast();
-        }
-        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY && multiTankComponent != null) {
-            return multiTankComponent.getCapabilityForSide(FacingUtil.getFacingRelative(this.getFacingDirection(), side)).cast();
-        }
-        return LazyOptional.empty();
+    public Storage<ItemVariant> getItemStorage(Direction side) {
+        if (multiInventoryComponent != null)
+            return multiInventoryComponent.getCapabilityForSide(FacingUtil.getFacingRelative(this.getFacingDirection(), side)).getValueUnsafer();
+        return null;
+    }
+
+    @Override
+    public Storage<FluidVariant> getFluidStorage(Direction side) {
+        if (multiTankComponent != null)
+            return multiTankComponent.getCapabilityForSide(FacingUtil.getFacingRelative(this.getFacingDirection(), side)).getValueUnsafer();
+        return null;
     }
 
     public MultiInventoryComponent<T> getMultiInventoryComponent() {
@@ -197,7 +203,7 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
         Client
      */
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void addGuiAddonFactory(IFactory<? extends IScreenAddon> factory) {
         this.guiAddons.add(factory);
     }
@@ -297,22 +303,22 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
                 String name = compound.getString("Name");
                 if (multiTankComponent != null) {
                     for (FluidTankComponent<T> fluidTankComponent : multiTankComponent.getTanks()) {
-                        if (fluidTankComponent.getName().equalsIgnoreCase(name))
-                            playerEntity.containerMenu.getCarried().getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(iFluidHandlerItem -> {
-                                if (fill) {
-                                    int amount = Minecraft.getInstance().player.containerMenu.getCarried().getItem() instanceof BucketItem ? FluidType.BUCKET_VOLUME : Integer.MAX_VALUE;
-                                    amount = fluidTankComponent.fill(iFluidHandlerItem.drain(amount, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.EXECUTE);
-                                    iFluidHandlerItem.drain(amount, IFluidHandler.FluidAction.EXECUTE);
-                                } else {
-                                    int amount = Minecraft.getInstance().player.containerMenu.getCarried().getItem() instanceof BucketItem ? FluidType.BUCKET_VOLUME : Integer.MAX_VALUE;
-                                    amount = iFluidHandlerItem.fill(fluidTankComponent.drain(amount, IFluidHandler.FluidAction.SIMULATE), IFluidHandler.FluidAction.EXECUTE);
-                                    fluidTankComponent.drain(amount, IFluidHandler.FluidAction.EXECUTE);
-                                }
-                                playerEntity.containerMenu.setCarried(iFluidHandlerItem.getContainer().copy());
-                                if (playerEntity instanceof ServerPlayer) {
-                                    playerEntity.containerMenu.broadcastChanges();
-                                }
-                            });
+                        if (fluidTankComponent.getName().equalsIgnoreCase(name)) {
+                            Storage<FluidVariant> iFluidHandlerItem = ContainerItemContext.ofPlayerCursor(playerEntity, playerEntity.containerMenu).find(FluidStorage.ITEM);
+                            if (fill) {
+                                long amount = Minecraft.getInstance().player.containerMenu.getCarried().getItem() instanceof BucketItem ? FluidConstants.BUCKET : Long.MAX_VALUE;
+                                amount = TransferUtil.insertFluid(fluidTankComponent, TransferUtil.simulateExtractAnyFluid(iFluidHandlerItem, amount));
+                                TransferUtil.extractAnyFluid(iFluidHandlerItem, amount);
+                            } else {
+                                long amount = Minecraft.getInstance().player.containerMenu.getCarried().getItem() instanceof BucketItem ? FluidConstants.BUCKET : Long.MAX_VALUE;
+                                amount = TransferUtil.insertFluid(iFluidHandlerItem, TransferUtil.simulateExtractAnyFluid(fluidTankComponent, amount));
+                                TransferUtil.extractAnyFluid(fluidTankComponent, amount);
+                            }
+//                            playerEntity.containerMenu.setCarried(iFluidHandlerItem.getContainer().copy()); TODO: handled by the container context I think
+                            if (playerEntity instanceof ServerPlayer) {
+                                playerEntity.containerMenu.broadcastChanges();
+                            }
+                        }
                     }
                 }
             }

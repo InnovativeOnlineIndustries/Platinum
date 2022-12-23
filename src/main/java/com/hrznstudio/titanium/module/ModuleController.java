@@ -7,19 +7,15 @@
 
 package com.hrznstudio.titanium.module;
 
+import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.annotation.config.ConfigFile;
 import com.hrznstudio.titanium.annotation.plugin.FeaturePlugin;
 import com.hrznstudio.titanium.config.AnnotationConfigManager;
-import com.hrznstudio.titanium.event.handler.EventManager;
 import com.hrznstudio.titanium.plugin.PluginManager;
 import com.hrznstudio.titanium.plugin.PluginPhase;
 import com.hrznstudio.titanium.util.AnnotationUtil;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraftforge.api.fml.event.config.ModConfigEvents;
 
 public abstract class ModuleController {
     private final String modid;
@@ -27,14 +23,18 @@ public abstract class ModuleController {
     private final PluginManager modPluginManager;
     private final DeferredRegistryHelper deferredRegistryHelper;
 
-    public ModuleController() {
-        this.modid = ModLoadingContext.get().getActiveContainer().getModId();
-        this.modPluginManager = new PluginManager(modid, FeaturePlugin.FeaturePluginType.MOD, featurePlugin -> ModList.get().isLoaded(featurePlugin.value()), true);
+    public ModuleController(String modid) {
+        this.modid = modid;
+        this.modPluginManager = new PluginManager(modid, FeaturePlugin.FeaturePluginType.MOD, featurePlugin -> FabricLoader.getInstance().isModLoaded(featurePlugin.value()), true);
         this.modPluginManager.execute(PluginPhase.CONSTRUCTION);
         this.deferredRegistryHelper = new DeferredRegistryHelper(this.modid);
         onPreInit();
         onInit();
         onPostInit();
+    }
+
+    public ModuleController() {
+        this(Titanium.MODID);
     }
 
     private void addConfig(AnnotationConfigManager.Type type) {
@@ -59,25 +59,18 @@ public abstract class ModuleController {
             ConfigFile annotation = (ConfigFile) aClass.getAnnotation(ConfigFile.class);
             addConfig(AnnotationConfigManager.Type.of(annotation.type(), aClass).setName(annotation.value()));
         });
-        EventManager.mod(ModConfigEvent.Loading.class).process(ev -> {
-            configManager.inject(ev.getConfig().getSpec());
+        ModConfigEvents.loading(Titanium.MODID).register(ev -> {
+            configManager.inject(ev.getSpec());
             this.modPluginManager.execute(PluginPhase.CONFIG_LOAD);
-        }).subscribe();
-        EventManager.mod(ModConfigEvent.Reloading.class).process(ev -> {
-            configManager.inject(ev.getConfig().getSpec());
+        });
+        ModConfigEvents.reloading(Titanium.MODID).register(ev -> {
+            configManager.inject(ev.getSpec());
             this.modPluginManager.execute(PluginPhase.CONFIG_RELOAD);
-        }).subscribe();
-        EventManager.mod(GatherDataEvent.class).process(this::addDataProvider).subscribe();
-        EventManager.mod(FMLClientSetupEvent.class).process(fmlClientSetupEvent -> this.modPluginManager.execute(PluginPhase.CLIENT_SETUP)).subscribe();
-        EventManager.mod(FMLCommonSetupEvent.class).process(fmlClientSetupEvent -> this.modPluginManager.execute(PluginPhase.COMMON_SETUP)).subscribe();
+        });
         this.modPluginManager.execute(PluginPhase.POST_INIT);
     }
 
     protected abstract void initModules();
-
-    public void addDataProvider(GatherDataEvent event) {
-
-    }
 
     public DeferredRegistryHelper getRegistries() {
         return deferredRegistryHelper;

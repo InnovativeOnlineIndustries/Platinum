@@ -16,12 +16,15 @@ import com.hrznstudio.titanium.component.IComponentHarness;
 import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.container.addon.SlotContainerAddon;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemHandlerHelper;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import io.github.fabricators_of_create.porting_lib.util.ItemStackUtil;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -120,40 +123,34 @@ public class InventoryComponent<T extends IComponentHarness> extends ItemStackHa
         return this;
     }
 
-    @Nonnull
     @Override
-    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-        if (stack.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        validateSlotIndex(slot);
-        ItemStack existingStack = this.stacks.get(slot);
-        int limit = getStackLimit(slot, stack);
-        if (!existingStack.isEmpty()) {
-            if (!ItemHandlerHelper.canItemStacksStack(stack, existingStack)) {
-                return stack;
+    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+        long inserted = 0;
+        updateSnapshots(transaction);
+        for (int i = 0; i < getSlots(); i++) {
+            ItemStack held = stacks[i];
+            if (held.isEmpty()) { // just throw in a full stack
+                int toFill = (int) Math.min(getStackLimit(i, resource, maxAmount), maxAmount);
+                maxAmount -= toFill;
+                inserted += toFill;
+                ItemStack stack = resource.toStack(toFill);
+                contentsChangedInternal(i, stack, transaction);
+            } else if (ItemStackUtil.canItemStacksStack(held, resource.toStack())) { // already filled, but can stack
+                int max = getStackLimit(i, resource, maxAmount); // total possible
+                int canInsert = max - held.getCount(); // room available
+                int actuallyInsert = Math.min(canInsert, (int) maxAmount);
+                if (actuallyInsert > 0) {
+                    maxAmount -= actuallyInsert;
+                    inserted += actuallyInsert;
+                    held = held.copy();
+                    held.grow(actuallyInsert);
+                    contentsChangedInternal(i, held, transaction);
+                }
             }
-            limit -= existingStack.getCount();
+            if (maxAmount == 0)
+                break;
         }
-        if (limit <= 0) {
-            return stack;
-        }
-        boolean reachedLimit = stack.getCount() > limit;
-        if (!simulate) {
-            if (existingStack.isEmpty()) {
-                this.stacks.set(slot, reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack);
-            } else {
-                existingStack.grow(reachedLimit ? limit : stack.getCount());
-            }
-            onContentsChanged(slot);
-        }
-        return reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, stack.getCount() - limit) : ItemStack.EMPTY;
-    }
-
-    @Nonnull
-    @Override
-    public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return super.extractItem(slot, amount, simulate);
+        return inserted;
     }
 
     @Override
@@ -355,12 +352,12 @@ public class InventoryComponent<T extends IComponentHarness> extends ItemStackHa
     }
 
     @Override
-    public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-        return insertPredicate.test(stack, slot);
+    public boolean isItemValid(int slot, @Nonnull ItemVariant variant, long amount) {
+        return insertPredicate.test(variant.toStack((int) amount), slot);
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         List<IFactory<? extends IScreenAddon>> addons = new ArrayList<>();
         addons.add(() -> new SlotsScreenAddon<>(this));

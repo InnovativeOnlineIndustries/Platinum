@@ -11,6 +11,7 @@ import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.block.BasicTileBlock;
 import com.hrznstudio.titanium.nbthandler.NBTManager;
 import com.hrznstudio.titanium.network.messages.TileFieldNetworkMessage;
+import io.github.fabricators_of_create.porting_lib.block.CustomDataPacketHandlingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -24,13 +25,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class BasicTile<T extends BasicTile<T>> extends BlockEntity implements IScreenInfoProvider {
+public class BasicTile<T extends BasicTile<T>> extends BlockEntity implements IScreenInfoProvider, CustomDataPacketHandlingBlockEntity {
 
     private final BasicTileBlock<T> basicTileBlock;
 
@@ -56,7 +57,7 @@ public class BasicTile<T extends BasicTile<T>> extends BlockEntity implements IS
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void initClient() {
 
     }

@@ -7,12 +7,12 @@
 
 package com.hrznstudio.titanium.tab;
 
-import net.minecraft.world.item.CreativeModeTab;
+import io.github.fabricators_of_create.porting_lib.util.LazyItemGroup;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Supplier;
 
-public class TitaniumTab extends CreativeModeTab {
+public class TitaniumTab extends LazyItemGroup {
     protected Supplier<ItemStack> stackSupplier;
 
     public TitaniumTab(String label, Supplier<ItemStack> stackSupplier) {

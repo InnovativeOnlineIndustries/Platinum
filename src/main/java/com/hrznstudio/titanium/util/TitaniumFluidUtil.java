@@ -7,12 +7,18 @@
 
 package com.hrznstudio.titanium.util;
 
+import com.mojang.datafixers.util.Pair;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemHandlerHelper;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
 
@@ -22,18 +28,17 @@ import javax.annotation.Nonnull;
 public class TitaniumFluidUtil {
 
     @Nonnull
-    public static FluidActionResult tryEmptyContainer(@Nonnull ItemStack container, IFluidHandler fluidDestination, int maxAmount, boolean doDrain) {
-        ItemStack containerCopy = ItemHandlerHelper.copyStackWithSize(container, 1);
-        return FluidUtil.getFluidHandler(containerCopy)
-            .map(containerFluidHandler -> {
-                FluidStack transfer = FluidUtil.tryFluidTransfer(fluidDestination, containerFluidHandler, maxAmount, doDrain);
-                if (transfer.isEmpty()) {
-                    return FluidActionResult.FAILURE;
-                }
-                ItemStack resultContainer = containerFluidHandler.getContainer();
-                return new FluidActionResult(resultContainer);
-            })
-            .orElse(FluidActionResult.FAILURE);
+    public static Pair<Boolean, ContainerItemContext> tryEmptyContainer(@Nonnull ItemStack container, Storage<FluidVariant> fluidDestination, long maxAmount, boolean doDrain) {
+        ContainerItemContext context = ContainerItemContext.withInitial(container);
+        Storage<FluidVariant> fluidStorage = context.find(FluidStorage.ITEM);
+        if (fluidStorage != null) {
+            try (Transaction t = TransferUtil.getTransaction()) {
+                long amountMoved = StorageUtil.move(fluidStorage, fluidDestination, v -> true, maxAmount, t);
+                t.commit();
+                return amountMoved != 0 ? Pair.of(true, context) : Pair.of(false, ContainerItemContext.withInitial(container));
+            }
+        }
+        return Pair.of(false, ContainerItemContext.withInitial(container));
     }
 
 }

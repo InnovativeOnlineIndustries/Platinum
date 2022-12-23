@@ -20,14 +20,14 @@ import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.container.addon.IntArrayReferenceHolderAddon;
 import com.hrznstudio.titanium.container.referenceholder.FluidTankReferenceHolder;
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTank;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,66 +113,17 @@ public class FluidTankComponent<T extends IComponentHarness> extends FluidTank i
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
-        return getTankAction().canFill() ? super.fill(resource, action) : 0;
-    }
-
-    @Nonnull
-    @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
-        return getTankAction().canDrain() ? drainInternal(resource, action) : FluidStack.EMPTY;
-    }
-
-    private FluidStack drainInternal(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty() || !resource.isFluidEqual(fluid)) {
-            return FluidStack.EMPTY;
-        }
-        return drain(resource.getAmount(), action);
-    }
-
-    @Nonnull
-    @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
-        return getTankAction().canDrain() ? drainInternal(maxDrain, action) : FluidStack.EMPTY;
-    }
-
-    @Nonnull
-    private FluidStack drainInternal(int maxDrain, FluidAction action) {
-        int drained = maxDrain;
-        if (fluid.getAmount() < drained) {
-            drained = fluid.getAmount();
-        }
-        FluidStack stack = new FluidStack(fluid, drained);
-        if (action.execute() && drained > 0) {
-            fluid.shrink(drained);
-            onContentsChanged();
-        }
-        return stack;
-    }
-
-    public int fillForced(FluidStack resource, FluidAction action) {
-        return super.fill(resource, action);
-    }
-
-    @Nonnull
-    public FluidStack drainForced(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty() || !resource.isFluidEqual(fluid)) {
-            return FluidStack.EMPTY;
-        }
-        return drainForced(resource.getAmount(), action);
-    }
-
-    @Nonnull
-    public FluidStack drainForced(int maxDrain, FluidAction action) {
-        return drainInternal(maxDrain, action);
-    }
-
-    public void setFluidStack(FluidStack fluidStack) {
-        this.fluid = fluidStack;
+    public long insert(FluidVariant insertedVariant, long maxAmount, TransactionContext transaction) {
+        return getTankAction().canFill() ? super.insert(insertedVariant, maxAmount, transaction) : 0;
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
+    public long extract(FluidVariant extractedVariant, long maxAmount, TransactionContext transaction) {
+        return getTankAction().canDrain() ? super.extract(extractedVariant, maxAmount, transaction) : 0;
+    }
+
+    @Override
+    @Environment(EnvType.CLIENT)
     public List<IFactory<? extends IScreenAddon>> getScreenAddons() {
         List<IFactory<? extends IScreenAddon>> addons = new ArrayList<>();
         addons.add(() -> new TankScreenAddon(posX, posY, this, tankType));

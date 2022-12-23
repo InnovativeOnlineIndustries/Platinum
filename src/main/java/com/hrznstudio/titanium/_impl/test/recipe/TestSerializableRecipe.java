@@ -10,6 +10,7 @@ package com.hrznstudio.titanium._impl.test.recipe;
 import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.recipe.serializer.GenericSerializer;
 import com.hrznstudio.titanium.recipe.serializer.SerializableRecipe;
+import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -20,15 +21,15 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class TestSerializableRecipe extends SerializableRecipe {
 
     public static RegistryObject<RecipeSerializer<?>> SERIALIZER;
-    public static RegistryObject<RecipeType<?>> RECIPE_TYPE;
+    public static Supplier<RecipeType<?>> RECIPE_TYPE;
     public static final List<TestSerializableRecipe> RECIPES = new ArrayList<>();
 
     static {

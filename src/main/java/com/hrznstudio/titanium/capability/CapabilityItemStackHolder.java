@@ -7,21 +7,13 @@
 
 package com.hrznstudio.titanium.capability;
 
+import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.api.capability.IStackHolder;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import dev.onyxstudios.cca.api.v3.component.ComponentKey;
+import dev.onyxstudios.cca.api.v3.component.ComponentRegistry;
+import net.minecraft.resources.ResourceLocation;
 
 public class CapabilityItemStackHolder {
-
-
-    public static final Capability<IStackHolder> ITEMSTACK_HOLDER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {
-    });
-
-
-    public static void register(RegisterCapabilitiesEvent event) {
-        event.register(IStackHolder.class);
-    }
+    public static final ComponentKey<IStackHolder> ITEMSTACK_HOLDER_CAPABILITY = ComponentRegistry.getOrCreate(new ResourceLocation(Titanium.MODID, "itemstack_holder"), IStackHolder.class);
 
 }

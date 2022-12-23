@@ -8,6 +8,8 @@
 package com.hrznstudio.titanium.fluid;
 
 import com.hrznstudio.titanium.module.DeferredRegistryHelper;
+import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
+import net.minecraft.core.Registry;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -17,39 +19,24 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Material;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-
-import java.util.function.Consumer;
 
 public class TitaniumFluidInstance {
 
-    private RegistryObject<FluidType> fluidType;
+//    private RegistryObject<FluidType> fluidType;
     private RegistryObject<Fluid> flowingFluid;
     private RegistryObject<Fluid> sourceFluid;
     private RegistryObject<Item> bucketFluid;
     private RegistryObject<Block> blockFluid;
     private final String fluid;
 
-    public TitaniumFluidInstance(DeferredRegistryHelper helper, String fluid, FluidType.Properties fluidTypeProperties, IClientFluidTypeExtensions renderProperties, CreativeModeTab group) {
+    public TitaniumFluidInstance(DeferredRegistryHelper helper, String fluid, CreativeModeTab group) {
         this.fluid = fluid;
-        this.sourceFluid = helper.registerGeneric(ForgeRegistries.FLUIDS.getRegistryKey(), fluid, () -> new TitaniumFluid.Source(this));
-        this.flowingFluid = helper.registerGeneric(ForgeRegistries.FLUIDS.getRegistryKey(), fluid + "_flowing", () -> new TitaniumFluid.Flowing(this));
-        this.fluidType = helper.registerGeneric(ForgeRegistries.Keys.FLUID_TYPES, fluid, () -> new FluidType(fluidTypeProperties) {
-            @Override
-            public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-                consumer.accept(renderProperties);
-            }
-        });
-        this.bucketFluid = helper.registerGeneric(ForgeRegistries.ITEMS.getRegistryKey(), fluid + "_bucket", () -> new BucketItem(this.sourceFluid, new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1).tab(group)));
-        this.blockFluid = helper.registerGeneric(ForgeRegistries.BLOCKS.getRegistryKey(), fluid, () -> new LiquidBlock(() -> (FlowingFluid) sourceFluid.get(), Block.Properties.of(Material.WATER).noCollission().strength(100.0F).noLootTable()));
+        this.sourceFluid = helper.registerGeneric(Registry.FLUID_REGISTRY, fluid, () -> new TitaniumFluid.Source(this));
+        this.flowingFluid = helper.registerGeneric(Registry.FLUID_REGISTRY, fluid + "_flowing", () -> new TitaniumFluid.Flowing(this));
+        this.bucketFluid = helper.registerGeneric(Registry.ITEM_REGISTRY, fluid + "_bucket", () -> new BucketItem(this.sourceFluid.get(), new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1).tab(group)));
+        this.blockFluid = helper.registerGeneric(Registry.BLOCK_REGISTRY, fluid, () -> new LiquidBlock((FlowingFluid) sourceFluid.get(), Block.Properties.of(Material.WATER).noCollission().strength(100.0F).noLootTable()));
     }
 
-    public RegistryObject<FluidType> getFluidType() {
-        return fluidType;
-    }
     public RegistryObject<Fluid>  getFlowingFluid() {
         return flowingFluid;
     }

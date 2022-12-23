@@ -13,12 +13,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.network.CompoundSerializableDataHandler;
+import io.github.fabricators_of_create.porting_lib.crafting.CraftingHelper;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,6 +45,8 @@ public class GenericSerializer<T extends SerializableRecipe> implements RecipeSe
     @Override
     @Nonnull
     public T fromJson(@Nonnull ResourceLocation recipeId, JsonObject json) {
+        if (!CraftingHelper.processConditions(json, ResourceConditions.CONDITIONS_KEY))
+            return null;
         try {
             T recipe = recipeClass.getConstructor(ResourceLocation.class).newInstance(recipeId);
             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
@@ -57,14 +59,6 @@ public class GenericSerializer<T extends SerializableRecipe> implements RecipeSe
             Titanium.LOGGER.catching(e);
             throw new JsonParseException(e);
         }
-    }
-
-    @Override
-    public T fromJson(ResourceLocation recipeLoc, JsonObject recipeJson, ICondition.IContext context) {
-        if (CraftingHelper.processConditions(recipeJson, "conditions", context)){
-            return fromJson(recipeLoc, recipeJson);
-        }
-        return null;
     }
 
     // Writes a json object from a recipe object
@@ -87,8 +81,8 @@ public class GenericSerializer<T extends SerializableRecipe> implements RecipeSe
             JsonArray recipes = new JsonArray();
             JsonObject filteredRecipe = new JsonObject();
             JsonArray conditions = new JsonArray();
-            conditions.add(recipe.getOutputCondition().getRight().getJson(recipe.getOutputCondition().getLeft()));
-            filteredRecipe.add("conditions", conditions);
+            conditions.add(recipe.getOutputCondition().toJson());
+            filteredRecipe.add(ResourceConditions.CONDITIONS_KEY, conditions);
             filteredRecipe.add("recipe", object);
             recipes.add(filteredRecipe);
             recipeCondition.add("recipes", recipes);

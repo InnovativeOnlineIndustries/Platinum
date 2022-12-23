@@ -11,19 +11,21 @@ import net.minecraft.world.inventory.DataSlot;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 
 public class FunctionReferenceHolder extends DataSlot {
-    private final IntConsumer setter;
-    private final IntSupplier getter;
+    private final LongConsumer setter;
+    private final LongSupplier getter;
 
-    public FunctionReferenceHolder(IntConsumer setter, IntSupplier getter) {
+    public FunctionReferenceHolder(LongConsumer setter, LongSupplier getter) {
         this.setter = setter;
         this.getter = getter;
     }
 
     @Override
     public int get() {
-        return getter.getAsInt();
+        return (int) getter.getAsLong();
     }
 
     @Override

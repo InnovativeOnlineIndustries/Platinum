@@ -9,9 +9,15 @@ package com.hrznstudio.titanium.reward;
 
 import com.hrznstudio.titanium.network.Message;
 import com.hrznstudio.titanium.reward.storage.ClientRewardStorage;
+import me.pepperbell.simplenetworking.SimpleChannel;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.PacketListener;
+import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.Executor;
 
 
 public class RewardSyncMessage extends Message {
@@ -27,7 +33,7 @@ public class RewardSyncMessage extends Message {
     }
 
     @Override
-    protected void handleMessage(NetworkEvent.Context context) {
+    protected void handleMessage(Executor executor, @Nullable Player sender, PacketListener packetListener, PacketSender packetSender, SimpleChannel channel) {
         Minecraft.getInstance().tell(() -> {
             ClientRewardStorage.REWARD_STORAGE.deserializeNBT(compoundNBT);
         });
