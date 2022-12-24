@@ -61,7 +61,7 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
     /**
      * @return The amount of energy produced every tick
      */
-    public abstract int getEnergyProducedEveryTick();
+    public abstract long getEnergyProducedEveryTick();
 
     /**
      * Gets the progress bar used for the generator
@@ -75,7 +75,7 @@ public abstract class GeneratorTile<T extends GeneratorTile<T>> extends PoweredT
      *
      * @return The amount of energy that can be stored
      */
-    public abstract int getEnergyCapacity();
+    public abstract long getEnergyCapacity();
 
     /**
      * Gets how much energy can be extracted every tick
