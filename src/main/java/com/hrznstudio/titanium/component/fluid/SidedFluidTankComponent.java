@@ -47,7 +47,7 @@ public class SidedFluidTankComponent<T extends IComponentHarness> extends FluidT
     private boolean hasFacingAddon;
     private FaceMode[] validFaceModes;
 
-    public SidedFluidTankComponent(String name, int amount, int posX, int posY, int pos) {
+    public SidedFluidTankComponent(String name, long amount, int posX, int posY, int pos) {
         super(name, amount, posX, posY);
         this.color = DyeColor.WHITE.getFireworkColor();
         this.facingModes = new HashMap<>();

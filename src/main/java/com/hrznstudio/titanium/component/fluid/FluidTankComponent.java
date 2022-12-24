@@ -42,7 +42,7 @@ public class FluidTankComponent<T extends IComponentHarness> extends FluidTank i
     private Action tankAction;
     private Runnable onContentChange;
 
-    public FluidTankComponent(String name, int amount, int posX, int posY) {
+    public FluidTankComponent(String name, long amount, int posX, int posY) {
         super(amount);
         this.posX = posX;
         this.posY = posY;
