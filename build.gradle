@@ -119,9 +119,16 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   from javadoc.destinationDir
 }
 
+
+task deobfJar(type: Jar) {
+  from sourceSets.main.output
+  classifier 'remap'
+}
+
 artifacts {
   archives sourcesJar
   archives javadocJar
+  archives deobfJar
 }
 
 publish.dependsOn(project.tasks.getByName("assemble"))
@@ -130,9 +137,7 @@ publish.mustRunAfter(project.tasks.getByName("build"))
 publishing {
   publications {
     mavenJava(MavenPublication) {
-      artifact jar
-      artifact sourcesJar
-      artifact javadocJar
+      from components.java
     }
   }
   repositories {
@@ -162,6 +167,7 @@ curseforge {
 
     }
     addArtifact sourcesJar
+    addArtifact deobfJar
     addArtifact javadocJar
   }
 }
