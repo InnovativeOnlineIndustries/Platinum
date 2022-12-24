@@ -21,13 +21,17 @@ import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.container.addon.IntArrayReferenceHolderAddon;
 import com.hrznstudio.titanium.container.referenceholder.FluidTankReferenceHolder;
 import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTank;
+import io.github.fabricators_of_create.porting_lib.util.FluidStack;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.nbt.CompoundTag;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,6 +119,33 @@ public class FluidTankComponent<T extends IComponentHarness> extends FluidTank i
     @Override
     public long insert(FluidVariant insertedVariant, long maxAmount, TransactionContext transaction) {
         return getTankAction().canFill() ? super.insert(insertedVariant, maxAmount, transaction) : 0;
+    }
+
+    public long fillForced(FluidStack resource, boolean simulate) {
+        try (Transaction t = TransferUtil.getTransaction()) {
+            long filled = super.insert(resource.getType(), resource.getAmount(), t);
+            if (!simulate)
+                t.commit();
+            return filled;
+        }
+    }
+
+    @Nonnull
+    public FluidStack drainForced(FluidStack resource, boolean simulate) {
+        if (resource.isEmpty() || !resource.isFluidEqual(stack)) {
+            return FluidStack.EMPTY;
+        }
+        return drainForced(resource.getAmount(), simulate);
+    }
+
+    @Nonnull
+    public FluidStack drainForced(long maxDrain, boolean simulate) {
+        try (Transaction t = TransferUtil.getTransaction()) {
+            FluidStack extracted = new FluidStack(stack, super.extract(stack.getType(), maxDrain, t));
+            if (!simulate)
+                t.commit();
+            return extracted;
+        }
     }
 
     @Override
