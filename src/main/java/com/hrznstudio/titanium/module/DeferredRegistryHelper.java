@@ -9,6 +9,7 @@ package com.hrznstudio.titanium.module;
 
 import com.hrznstudio.titanium.block.BasicBlock;
 import com.hrznstudio.titanium.block.BasicTileBlock;
+import io.github.fabricators_of_create.porting_lib.event.common.ModsLoadedCallback;
 import io.github.fabricators_of_create.porting_lib.util.LazyRegistrar;
 import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import net.minecraft.core.Registry;
@@ -32,11 +33,15 @@ public class DeferredRegistryHelper {
     public DeferredRegistryHelper(String modId) {
         this.modId = modId;
         this.registries = new HashMap<>();
+        ModsLoadedCallback.EVENT.register(envType -> {
+            registries.forEach((resourceKey, lazyRegistrar) -> {
+                lazyRegistrar.register();
+            });
+        });
     }
 
     public <T> LazyRegistrar<T> addRegistry(ResourceKey<? extends Registry<T>> key) {
         LazyRegistrar<T> deferredRegister = LazyRegistrar.create(key, this.modId);
-        deferredRegister.register();
         registries.put(key, deferredRegister);
         return deferredRegister;
     }

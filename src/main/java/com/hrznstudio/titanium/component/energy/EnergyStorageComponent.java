@@ -17,16 +17,20 @@ import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.container.addon.IContainerAddonProvider;
 import com.hrznstudio.titanium.container.addon.IntReferenceHolderAddon;
 import com.hrznstudio.titanium.container.referenceholder.FunctionReferenceHolder;
+import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.Tag;
 import team.reborn.energy.api.base.SimpleEnergyStorage;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
 public class EnergyStorageComponent<T extends IComponentHarness> extends SimpleEnergyStorage implements
-    IScreenAddonProvider, IContainerAddonProvider {
+    IScreenAddonProvider, IContainerAddonProvider, INBTSerializable<Tag> {
 
     private final int xPos;
     private final int yPos;
@@ -112,6 +116,18 @@ public class EnergyStorageComponent<T extends IComponentHarness> extends SimpleE
     @Override
     protected void onFinalCommit() {
         update();
+    }
+
+    @Override
+    public Tag serializeNBT() {
+        return LongTag.valueOf(this.getAmount());
+    }
+
+    @Override
+    public void deserializeNBT(Tag nbt) {
+        if (!(nbt instanceof LongTag longNbt))
+            throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
+        this.amount = longNbt.getAsLong();
     }
 }
 

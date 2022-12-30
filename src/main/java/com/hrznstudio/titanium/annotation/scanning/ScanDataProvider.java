@@ -50,7 +50,7 @@ public class ScanDataProvider {
             pathsToScan.addAll(FabricLoader.getInstance().getModContainer(Titanium.MODID).get().getRootPaths());
 
             try (var modStream = pathsToScan.stream()) {
-                modStream.filter(path -> path.getFileName().toString().endsWith(".jar"))
+                modStream.filter(path -> path.endsWith(".jar"))
                     .forEach(path -> {
                         try (var fs = FileSystems.newFileSystem(path)) {
                             var modJson = fs.getPath("fabric.mod.json");
@@ -67,49 +67,6 @@ public class ScanDataProvider {
         } catch (IOException e) {
             throw new RuntimeException("Failed to scan mods", e);
         }
-    }
-
-    // 100% safe code
-    private static Map<Path, List<Path>> getPathGroups() {
-        String prop = System.getProperty(SystemProperties.PATH_GROUPS);
-        if (prop == null) return Collections.emptyMap();
-
-        Set<Path> cp = new HashSet<>(FabricLauncherBase.getLauncher().getClassPath());
-        Map<Path, List<Path>> ret = new HashMap<>();
-
-        for (String group : prop.split(File.pathSeparator+File.pathSeparator)) {
-            Set<Path> paths = new LinkedHashSet<>();
-
-            for (String path : group.split(File.pathSeparator)) {
-                if (path.isEmpty()) continue;
-
-                Path resolvedPath = Paths.get(path);
-
-                if (!Files.exists(resolvedPath)) {
-                    Log.debug(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
-                    continue;
-                }
-
-                resolvedPath = LoaderUtil.normalizeExistingPath(resolvedPath);
-
-                if (cp.contains(resolvedPath)) {
-                    paths.add(resolvedPath);
-                }
-            }
-
-            if (paths.size() < 2) {
-                Log.debug(LogCategory.DISCOVERY, "Skipping class path group with no effect: %s", group);
-                continue;
-            }
-
-            List<Path> pathList = new ArrayList<>(paths);
-
-            for (Path path : pathList) {
-                ret.put(path, pathList);
-            }
-        }
-
-        return ret;
     }
 
     public static ModFileScanData getModScanData(String modId) {
