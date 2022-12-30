@@ -3,20 +3,25 @@ package com.hrznstudio.titanium.annotation.scanning;
 import com.google.gson.*;
 import com.hrznstudio.titanium.Titanium;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.minecraft.util.GsonHelper;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +40,12 @@ public class ScanDataProvider {
     public static void init() {
         try {
             var modsDir = Paths.get("mods");
+
             List<Path> pathsToScan = new ArrayList<>(Files.list(modsDir).toList());
+            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                Path mods = ((ArrayList<Path>)FabricLoader.getInstance().getObjectShare().get("fabric-loader:inputGameJars")).get(0).getParent().getParent().getParent().resolve("remapped_mods");
+                pathsToScan.addAll(Files.walk(mods).collect(Collectors.toList()));
+            }
 
             pathsToScan.addAll(FabricLoader.getInstance().getModContainer(Titanium.MODID).get().getRootPaths());
 
@@ -57,6 +67,49 @@ public class ScanDataProvider {
         } catch (IOException e) {
             throw new RuntimeException("Failed to scan mods", e);
         }
+    }
+
+    // 100% safe code
+    private static Map<Path, List<Path>> getPathGroups() {
+        String prop = System.getProperty(SystemProperties.PATH_GROUPS);
+        if (prop == null) return Collections.emptyMap();
+
+        Set<Path> cp = new HashSet<>(FabricLauncherBase.getLauncher().getClassPath());
+        Map<Path, List<Path>> ret = new HashMap<>();
+
+        for (String group : prop.split(File.pathSeparator+File.pathSeparator)) {
+            Set<Path> paths = new LinkedHashSet<>();
+
+            for (String path : group.split(File.pathSeparator)) {
+                if (path.isEmpty()) continue;
+
+                Path resolvedPath = Paths.get(path);
+
+                if (!Files.exists(resolvedPath)) {
+                    Log.debug(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
+                    continue;
+                }
+
+                resolvedPath = LoaderUtil.normalizeExistingPath(resolvedPath);
+
+                if (cp.contains(resolvedPath)) {
+                    paths.add(resolvedPath);
+                }
+            }
+
+            if (paths.size() < 2) {
+                Log.debug(LogCategory.DISCOVERY, "Skipping class path group with no effect: %s", group);
+                continue;
+            }
+
+            List<Path> pathList = new ArrayList<>(paths);
+
+            for (Path path : pathList) {
+                ret.put(path, pathList);
+            }
+        }
+
+        return ret;
     }
 
     public static ModFileScanData getModScanData(String modId) {
