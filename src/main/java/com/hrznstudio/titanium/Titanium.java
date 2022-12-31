@@ -76,7 +76,6 @@ public class Titanium extends ModuleController implements ModInitializer {
         });
 
         ItemExistsCondition.init();
-        ScanDataProvider.init();
     }
 
     @Override
