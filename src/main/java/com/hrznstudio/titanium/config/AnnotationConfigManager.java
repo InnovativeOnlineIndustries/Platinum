@@ -24,11 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 
 public class AnnotationConfigManager {
+    private final String modId;
 
     public List<Type> configClasses;
     public List<SpecCache> specCaches;
 
-    public AnnotationConfigManager() {
+    public AnnotationConfigManager(String modId) {
+        this.modId = modId;
         configClasses = new ArrayList<>();
         specCaches = new ArrayList<>();
     }
@@ -49,7 +51,7 @@ public class AnnotationConfigManager {
         String fileName = Titanium.MODID + "/" + (type.fileName.isEmpty() ? Titanium.MODID : type.fileName);
         if (!fileName.endsWith(".toml")) fileName = fileName + ".toml";
         specCache.spec = builder.build();
-        ModLoadingContext.registerConfig(Titanium.MODID, type.type, specCache.spec, fileName);
+        ModLoadingContext.registerConfig(modId, type.type, specCache.spec, fileName);
         specCaches.add(specCache);
     }
 

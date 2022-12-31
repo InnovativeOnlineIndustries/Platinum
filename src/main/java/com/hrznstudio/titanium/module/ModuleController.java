@@ -19,12 +19,13 @@ import net.minecraftforge.api.fml.event.config.ModConfigEvents;
 
 public abstract class ModuleController {
     private final String modid;
-    private final AnnotationConfigManager configManager = new AnnotationConfigManager();
+    private final AnnotationConfigManager configManager;
     private final PluginManager modPluginManager;
     private final DeferredRegistryHelper deferredRegistryHelper;
 
     public ModuleController(String modid) {
         this.modid = modid;
+        this.configManager = new AnnotationConfigManager(modid);
         this.modPluginManager = new PluginManager(modid, FeaturePlugin.FeaturePluginType.MOD, featurePlugin -> FabricLoader.getInstance().isModLoaded(featurePlugin.value()), true);
         this.modPluginManager.execute(PluginPhase.CONSTRUCTION);
         this.deferredRegistryHelper = new DeferredRegistryHelper(this.modid);
