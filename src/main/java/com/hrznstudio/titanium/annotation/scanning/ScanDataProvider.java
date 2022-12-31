@@ -3,6 +3,7 @@ package com.hrznstudio.titanium.annotation.scanning;
 import com.google.gson.*;
 import com.hrznstudio.titanium.Titanium;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -38,34 +39,14 @@ public class ScanDataProvider {
     public static Map<String, ModFileScanData> ALL_SCAN_DATA = new HashMap<>();
 
     public static void init() {
-        try {
-            var modsDir = Paths.get("mods");
-
-            List<Path> pathsToScan = new ArrayList<>(Files.list(modsDir).toList());
-            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-                Path mods = ((ArrayList<Path>)FabricLoader.getInstance().getObjectShare().get("fabric-loader:inputGameJars")).get(0).getParent().getParent().getParent().resolve("remapped_mods");
-                pathsToScan.addAll(Files.walk(mods).collect(Collectors.toList()));
-            }
-
-            pathsToScan.addAll(FabricLoader.getInstance().getModContainer(Titanium.MODID).get().getRootPaths());
-
-            try (var modStream = pathsToScan.stream()) {
-                modStream.filter(path -> path.endsWith(".jar"))
-                    .forEach(path -> {
-                        try (var fs = FileSystems.newFileSystem(path)) {
-                            var modJson = fs.getPath("fabric.mod.json");
-                            if (Files.exists(modJson) && path.toString().endsWith(".jar")) {
-                                JsonObject json = JsonParser.parseReader(Files.newBufferedReader(fs.getPath("fabric.mod.json"))).getAsJsonObject();
-                                var files = Files.walk(fs.getPath("/"));
-                                ALL_SCAN_DATA.put(GsonHelper.getAsString(json, "id"), generateScanData(files, path));
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to read " + path.getFileName(), e);
-                        }
-                    });
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to scan mods", e);
+        for (ModContainer modContainer : FabricLoader.getInstance().getAllMods()) {
+            ALL_SCAN_DATA.put(modContainer.getMetadata().getId(), generateScanData(modContainer.getRootPaths().stream().flatMap(path -> {
+                try {
+                    return Files.walk(path);
+                } catch (IOException e) {
+                    return Stream.empty();
+                }
+            }), modContainer));
         }
     }
 
@@ -74,7 +55,7 @@ public class ScanDataProvider {
     }
 
 
-    public static ModFileScanData generateScanData(Stream<Path> files, Path modFile) {
+    public static ModFileScanData generateScanData(Stream<Path> files, ModContainer modFile) {
         var startTime = System.currentTimeMillis();
         var data = new ModFileScanData();
         var classFiles = files.filter(Files::isRegularFile)
@@ -100,7 +81,7 @@ public class ScanDataProvider {
             throw new RuntimeException(e);
         }
 
-        LOGGER.info("Scanning {} took {}ms", modFile.getFileName().toString(), (System.currentTimeMillis() - startTime));
+        LOGGER.info("Scanning {} took {}ms", modFile.getMetadata().getId(), (System.currentTimeMillis() - startTime));
         return data;
     }
 }
