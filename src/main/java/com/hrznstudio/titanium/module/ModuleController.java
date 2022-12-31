@@ -60,11 +60,11 @@ public abstract class ModuleController {
             ConfigFile annotation = (ConfigFile) aClass.getAnnotation(ConfigFile.class);
             addConfig(AnnotationConfigManager.Type.of(annotation.type(), aClass).setName(annotation.value()));
         });
-        ModConfigEvents.loading(Titanium.MODID).register(ev -> {
+        ModConfigEvents.loading(modid).register(ev -> {
             configManager.inject(ev.getSpec());
             this.modPluginManager.execute(PluginPhase.CONFIG_LOAD);
         });
-        ModConfigEvents.reloading(Titanium.MODID).register(ev -> {
+        ModConfigEvents.reloading(modid).register(ev -> {
             configManager.inject(ev.getSpec());
             this.modPluginManager.execute(PluginPhase.CONFIG_RELOAD);
         });

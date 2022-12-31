@@ -44,11 +44,11 @@ public class AnnotationConfigManager {
             scanClass(configClass, builder, specCache);
         }
         // REGISTERING CONFIG
-        File folder = new File("config" + File.separator + Titanium.MODID);
+        File folder = new File("config" + File.separator + modId);
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        String fileName = Titanium.MODID + "/" + (type.fileName.isEmpty() ? Titanium.MODID : type.fileName);
+        String fileName = modId + "/" + (type.fileName.isEmpty() ? modId : type.fileName);
         if (!fileName.endsWith(".toml")) fileName = fileName + ".toml";
         specCache.spec = builder.build();
         ModLoadingContext.registerConfig(modId, type.type, specCache.spec, fileName);
@@ -89,7 +89,7 @@ public class AnnotationConfigManager {
                     }
                 }
             }
-            AnnotationUtil.getFilteredAnnotatedClasses(ConfigFile.Child.class, Titanium.MODID).stream()
+            AnnotationUtil.getFilteredAnnotatedClasses(ConfigFile.Child.class, modId).stream()
                 .filter(aClass -> ((ConfigFile.Child) aClass.getAnnotation(ConfigFile.Child.class)).value().equals(configClass)).forEach(aClass -> scanClass(aClass, builder, specCache));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
