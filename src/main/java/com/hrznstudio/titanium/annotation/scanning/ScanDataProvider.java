@@ -31,12 +31,8 @@ import java.util.stream.Stream;
 @Deprecated
 public class ScanDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger("Scan Data Provider");
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapterFactory(new RecordTypeAdapterFactory())
-            .registerTypeAdapter(ModFileScanData.AnnotationData.class, new AnnotationDataSerializer())
-            .create();
-
-    public static Map<String, ModFileScanData> ALL_SCAN_DATA = new HashMap<>();
+    private static final List<String> SKIP = List.of("minecraft", "fabricloader", "java");
+    public static final Map<String, ModFileScanData> ALL_SCAN_DATA;
 
     public static void init() {
         for (ModContainer modContainer : FabricLoader.getInstance().getAllMods()) {
@@ -52,36 +48,5 @@ public class ScanDataProvider {
 
     public static ModFileScanData getModScanData(String modId) {
         return ALL_SCAN_DATA.get(modId);
-    }
-
-
-    public static ModFileScanData generateScanData(Stream<Path> files, ModContainer modFile) {
-        var startTime = System.currentTimeMillis();
-        var data = new ModFileScanData();
-        var classFiles = files.filter(Files::isRegularFile)
-                .filter(path -> path.getFileName().toString().endsWith(".class"))
-                .toList();
-
-        for (var path : classFiles) {
-            try {
-                var reader = new ClassReader(Files.newInputStream(path));
-                var node = new ModScanClassVisitor(data);
-                reader.accept(node, 0);
-                node.buildModData();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        // testing GSON
-        var jsonStr = GSON.toJson(data);
-        try {
-            Files.writeString(Paths.get("scan_data.json"),jsonStr);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        LOGGER.info("Scanning {} took {}ms", modFile.getMetadata().getId(), (System.currentTimeMillis() - startTime));
-        return data;
     }
 }
