@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -29,13 +30,16 @@ public class DeferredRegistryHelper {
 
     private final String modId;
     private final HashMap<ResourceKey<? extends Registry<?>>, LazyRegistrar<?>> registries;
+    private final HashMap<ResourceKey<? extends Registry<?>>, Runnable> callbacks;
 
     public DeferredRegistryHelper(String modId) {
         this.modId = modId;
         this.registries = new HashMap<>();
+        this.callbacks = new HashMap<>();
         ModsLoadedCallback.EVENT.register(envType -> {
             registries.forEach((resourceKey, lazyRegistrar) -> {
                 lazyRegistrar.register();
+                lazyRegistrar.getEntries().forEach(registryObject -> callbacks.getOrDefault(resourceKey, () -> {}).run());
             });
         });
     }
@@ -57,6 +61,10 @@ public class DeferredRegistryHelper {
 
     public <T> RegistryObject<T> registerGeneric(ResourceKey<? extends Registry<T>> key, String name, Supplier<T> object) {
         return this.register(key, name, object);
+    }
+
+    public <T> void addRegistryCallback(ResourceKey<? extends Registry<T>> key, Runnable callback) {
+        callbacks.put(key, callback);
     }
 
     public RegistryObject<BlockEntityType<?>> registerBlockEntityType(String name, Supplier<BlockEntityType<?>> object) {
