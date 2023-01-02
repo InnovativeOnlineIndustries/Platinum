@@ -39,7 +39,11 @@ public class TitaniumFluidInstance {
     private RegistryObject<Block> blockFluid;
     private final String fluid;
 
-    public TitaniumFluidInstance(DeferredRegistryHelper helper, TitaniumAttributeHandler.Properties fluidAttributes, ResourceLocation still, ResourceLocation flowing, Function<FluidVariant, Integer> color, String fluid, CreativeModeTab group) {
+    public TitaniumFluidInstance(DeferredRegistryHelper helper, String fluid, TitaniumAttributeHandler.Properties fluidAttributes, ResourceLocation still, ResourceLocation flowing, CreativeModeTab group) {
+        this(helper, fluid, fluidAttributes, still, flowing, variant -> -1, group);
+    }
+
+    public TitaniumFluidInstance(DeferredRegistryHelper helper, String fluid, TitaniumAttributeHandler.Properties fluidAttributes, ResourceLocation still, ResourceLocation flowing, Function<FluidVariant, Integer> color, CreativeModeTab group) {
         this.fluid = fluid;
         this.sourceFluid = helper.registerGeneric(Registry.FLUID_REGISTRY, fluid, () -> new TitaniumFluid.Source(this));
         this.flowingFluid = helper.registerGeneric(Registry.FLUID_REGISTRY, fluid + "_flowing", () -> new TitaniumFluid.Flowing(this));
