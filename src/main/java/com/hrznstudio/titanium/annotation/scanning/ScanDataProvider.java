@@ -1,13 +1,19 @@
 package com.hrznstudio.titanium.annotation.scanning;
 
 import com.mojang.datafixers.util.Pair;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,9 +34,10 @@ public class ScanDataProvider {
             .filter(modContainer -> !(SKIP.contains(modContainer.getMetadata().getId()) || modContainer.getMetadata().containsCustomValue("skip-class-scan")))
             .map(modContainer -> {
                 var startTime = System.currentTimeMillis();
+                var paths = modContainer.getRootPaths();
                 var data = new ModFileScanData();
-                modContainer.getRootPaths()
-                    .stream()
+
+                paths.stream()
                     .flatMap(path -> {
                         try {
                             return Files.walk(path);
