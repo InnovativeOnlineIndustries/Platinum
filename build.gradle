@@ -66,13 +66,12 @@ dependencies {
 
   modImplementation(include("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"))
 
-  modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:$rei_version"
+  modApi "dev.architectury:architectury-fabric:$arch_version"
+  modImplementation "me.shedaniel:RoughlyEnoughItems-fabric:$rei_version"
 
   // compile against the JEI API but do not include it at runtime
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-common-api:$jei_version")
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-fabric-api:$jei_version")
-  // at runtime, use the full JEI jar for Fabric
-  modRuntimeOnly("mezz.jei:jei-${project.minecraftVersion}-fabric:$jei_version")
 
   modImplementation(include("io.github.fabricators_of_create.Porting-Lib:porting-lib:${project.port_lib_version}+${project.minecraftVersion}"))
   modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:${project.config_api_version}"))
