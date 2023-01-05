@@ -7,7 +7,9 @@
 
 package com.hrznstudio.titanium.network;
 
+import io.github.fabricators_of_create.porting_lib.util.EnvExecutor;
 import me.pepperbell.simplenetworking.SimpleChannel;
+import net.fabricmc.api.EnvType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +26,8 @@ public class NetworkHandler {
     public NetworkHandler(String modid) {
         i = 0;
         network = new SimpleChannel(new ResourceLocation(modid, "network"));
+        network.initServerListener();
+        EnvExecutor.runWhenOn(EnvType.CLIENT, () -> network::initClientListener);
     }
 
     public SimpleChannel get() {
