@@ -8,7 +8,7 @@
 package com.hrznstudio.titanium.api.filter;
 
 import com.hrznstudio.titanium.api.client.IScreenAddonProvider;
-import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.util.INBTSerializable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 

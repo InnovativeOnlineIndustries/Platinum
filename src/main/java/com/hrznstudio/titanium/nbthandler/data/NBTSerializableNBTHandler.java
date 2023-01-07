@@ -8,7 +8,7 @@
 package com.hrznstudio.titanium.nbthandler.data;
 
 import com.hrznstudio.titanium.api.INBTHandler;
-import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.util.INBTSerializable;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nonnull;
