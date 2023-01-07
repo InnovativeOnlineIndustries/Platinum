@@ -12,9 +12,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.hrznstudio.titanium.fabric.NonNullLazy;
 import net.minecraft.core.Registry;
-import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
+import net.minecraft.data.HashCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
@@ -46,7 +46,7 @@ public class BlockItemModelGeneratorProvider implements DataProvider {
     }
 
     @Override
-    public void run(@Nonnull CachedOutput cache) throws IOException {
+    public void run(@Nonnull HashCache cache) throws IOException {
         Path path = this.generator.getOutputFolder();
         Path output = path.resolve("assets/" + modid + "/models/item/");
         Files.createDirectories(output);

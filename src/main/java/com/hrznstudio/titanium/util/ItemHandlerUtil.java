@@ -8,7 +8,7 @@
 package com.hrznstudio.titanium.util;
 
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -32,7 +32,7 @@ public class ItemHandlerUtil {
         return true;
     }
 
-    public static boolean isEmpty(SlotExposedStorage handler) {
+    public static boolean isEmpty(ItemStackHandler handler) {
         for (int i = 0; i < handler.getSlots(); i++) {
             if (!handler.getStackInSlot(i).isEmpty()) return false;
         }

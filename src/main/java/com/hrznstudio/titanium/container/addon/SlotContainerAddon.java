@@ -8,7 +8,7 @@
 package com.hrznstudio.titanium.container.addon;
 
 import com.google.common.collect.Lists;
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import net.minecraft.world.inventory.Slot;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.function.Function;
 
 public class SlotContainerAddon implements IContainerAddon {
-    private final SlotExposedStorage itemHandler;
+    private final ItemStackHandler itemHandler;
     private final int xPos;
     private final int yPos;
     private final Function<Integer, Pair<Integer, Integer>> positionFunction;
 
-    public SlotContainerAddon(SlotExposedStorage itemHandler, int xPos, int yPos, Function<Integer, Pair<Integer, Integer>> positionFunction) {
+    public SlotContainerAddon(ItemStackHandler itemHandler, int xPos, int yPos, Function<Integer, Pair<Integer, Integer>> positionFunction) {
         this.itemHandler = itemHandler;
         this.xPos = xPos;
         this.yPos = yPos;

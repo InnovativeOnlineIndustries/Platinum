@@ -72,8 +72,11 @@ dependencies {
   // compile against the JEI API but do not include it at runtime
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-common-api:$jei_version")
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-fabric-api:$jei_version")
-
-  modImplementation(include("io.github.fabricators_of_create.Porting-Lib:porting-lib:${project.port_lib_version}+${project.minecraftVersion}"))
+  implementation("com.github.LlamaLad7:MixinExtras:0.1.1")
+  modImplementation(include("io.github.fabricators_of_create:Porting-Lib:${project.port_lib_version}-beta+1.18.2-stable")){
+    exclude(group: "net.fabricmc.fabric-api")
+    exclude(group: "com.github.LlamaLad7")
+  }
   modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:${project.config_api_version}"))
 
   include modApi('teamreborn:energy:2.2.0') {

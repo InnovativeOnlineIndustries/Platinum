@@ -19,7 +19,7 @@ import com.hrznstudio.titanium.component.sideness.SidedComponentManager;
 import com.hrznstudio.titanium.util.FacingUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.item.ItemHandlerHelper;
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -207,14 +207,14 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
         return addons;
     }
 
-    private int getNextSlot(SlotExposedStorage handler, int currentSlot) {
+    private int getNextSlot(ItemStackHandler handler, int currentSlot) {
         for (int i = currentSlot; i < handler.getSlots(); i++) {
             if (!handler.getStackInSlot(i).isEmpty()) return i;
         }
         return 0;
     }
 
-    private boolean transfer(FacingUtil.Sideness sideness, SlotExposedStorage from, SlotExposedStorage to, int workAmount) {
+    private boolean transfer(FacingUtil.Sideness sideness, ItemStackHandler from, ItemStackHandler to, int workAmount) {
         if (from.getSlots() <= 0) return false;
         int slot = slotCache.getOrDefault(sideness, getNextSlot(from, 0));
         if (slot >= from.getSlots()) slot = 0;
@@ -232,7 +232,7 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
         return false;
     }
 
-    private int isValidForAnySlot(SlotExposedStorage dest, ItemStack stack) {
+    private int isValidForAnySlot(ItemStackHandler dest, ItemStack stack) {
         for (int i = 0; i < dest.getSlots(); i++) {
             if (!dest.isItemValid(i, ItemVariant.of(stack), stack.getCount())) continue;
             if (dest.getStackInSlot(i).isEmpty()) return i;
