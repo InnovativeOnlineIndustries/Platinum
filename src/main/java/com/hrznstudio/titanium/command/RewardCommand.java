@@ -21,6 +21,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
@@ -69,7 +70,7 @@ public class RewardCommand {
         try {
             rewardWorldStorage.remove(source.getPlayerOrException().getUUID(), context.getArgument("reward", ResourceLocation.class));
             rewardWorldStorage.setDirty();
-            context.getSource().sendSuccess(Component.literal("titanium.rewards.remove_success"), true);
+            context.getSource().sendSuccess(new TextComponent("titanium.rewards.remove_success"), true);
             return true;
         } catch (CommandSyntaxException e) {
             e.printStackTrace();

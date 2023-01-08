@@ -10,6 +10,7 @@ package com.hrznstudio.titanium.item;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
 import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.SimpleBatteryItem;
@@ -58,7 +59,7 @@ public class EnergyItem extends BasicItem implements SimpleBatteryItem {
         if (key == Key.SHIFT) {
             getEnergyStorage(stack).ifPresent(storage ->
                 tooltip.add(
-                    Component.empty().withStyle(ChatFormatting.YELLOW)
+                    new TextComponent("").withStyle(ChatFormatting.YELLOW)
                         .append("Energy: ").withStyle(ChatFormatting.RED)
                         .append(String.valueOf(storage.getAmount())).withStyle(ChatFormatting.YELLOW)
                         .append("/").withStyle(ChatFormatting.RED)

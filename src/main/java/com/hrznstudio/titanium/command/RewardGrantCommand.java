@@ -18,6 +18,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class RewardGrantCommand {
@@ -40,7 +41,7 @@ public class RewardGrantCommand {
                 RewardWorldStorage rewardWorldStorage = RewardWorldStorage.get(context.getSource().getLevel());
                 rewardWorldStorage.addFree(resourceLocation);
                 rewardWorldStorage.setDirty();
-                context.getSource().sendSuccess(Component.translatable("titanium.rewards.granted_success"), true);
+                context.getSource().sendSuccess(new TranslatableComponent("titanium.rewards.granted_success"), true);
                 return;
             }
         }

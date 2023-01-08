@@ -28,8 +28,8 @@ public class TitaniumData implements DataGeneratorEntrypoint {
                     .isPresent())
                 .collect(Collectors.toList())
         );
-        generator.addProvider(true, new BlockItemModelGeneratorProvider(generator, MODID, blocksToProcess));
-        generator.addProvider(true, new TitaniumLootTableProvider(generator, blocksToProcess));
-        generator.addProvider(true, new JsonRecipeSerializerProvider(generator, MODID));
+        generator.addProvider(new BlockItemModelGeneratorProvider(generator, MODID, blocksToProcess));
+        generator.addProvider(new TitaniumLootTableProvider(generator, blocksToProcess));
+        generator.addProvider(new JsonRecipeSerializerProvider(generator, MODID));
     }
 }
