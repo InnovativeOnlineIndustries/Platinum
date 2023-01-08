@@ -80,7 +80,7 @@ public class TankScreenAddon extends BasicScreenAddon {
                 RenderSystem.setShaderColor(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
                 RenderSystem.enableBlend();
                 Screen.blit(stack, this.getPosX() + guiX + asset.getFluidRenderPadding(Direction.WEST),
-                    this.getPosY() + guiY + asset.getFluidRenderPadding(Direction.UP) + (fluidStack.getFluid().is(Tags.Fluids.GASEOUS) ? 0 : (area.height - topBottomPadding) - offset),
+                    this.getPosY() + guiY + asset.getFluidRenderPadding(Direction.UP) + (fluidStack.getFluid().getAttributes().isGaseous() ? 0 : (area.height - topBottomPadding) - offset),
                     0,
                     (int) (area.getWidth() - asset.getFluidRenderPadding(Direction.EAST) - asset.getFluidRenderPadding(Direction.WEST)),
                     offset,
@@ -153,7 +153,7 @@ public class TankScreenAddon extends BasicScreenAddon {
             if (screen instanceof AbstractContainerScreen && ((AbstractContainerScreen) screen).getMenu() instanceof ILocatable) {
                 if (!isMouseOver(mouseX - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiLeft(), mouseY - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiTop()))
                     return false;
-                Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 1f, 1f, RandomSource.create(), Minecraft.getInstance().player.blockPosition())); //getPosition
+                Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 1f, 1f, Minecraft.getInstance().player.blockPosition())); //getPosition
                 ILocatable locatable = (ILocatable) ((AbstractContainerScreen) screen).getMenu();
                 CompoundTag compoundNBT = new CompoundTag();
                 if (tank instanceof FluidTankComponent) {
