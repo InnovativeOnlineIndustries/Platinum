@@ -40,9 +40,10 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.BucketItem;
 
 import java.awt.*;
@@ -79,7 +80,7 @@ public class TankScreenAddon extends BasicScreenAddon {
                 RenderSystem.setShaderColor(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
                 RenderSystem.enableBlend();
                 Screen.blit(stack, this.getPosX() + guiX + asset.getFluidRenderPadding(Direction.WEST),
-                    this.getPosY() + guiY + asset.getFluidRenderPadding(Direction.UP) + (fluidStack.getFluid().is(Tags.Fluids.GASEOUS) ? 0 : (area.height - topBottomPadding) - offset),
+                    this.getPosY() + guiY + asset.getFluidRenderPadding(Direction.UP) + (fluidStack.getFluid().getAttributes().isGaseous() ? 0 : (area.height - topBottomPadding) - offset),
                     0,
                     (int) (area.getWidth() - asset.getFluidRenderPadding(Direction.EAST) - asset.getFluidRenderPadding(Direction.WEST)),
                     offset,
@@ -99,8 +100,8 @@ public class TankScreenAddon extends BasicScreenAddon {
     @Override
     public List<Component> getTooltipLines() {
         List<Component> strings = new ArrayList<>();
-        strings.add(Component.literal(ChatFormatting.GOLD + Component.translatable("tooltip.titanium.tank.fluid").getString()).append((tank.getAmount() <= 0L || tank.isResourceBlank()) ? Component.translatable("tooltip.titanium.tank.empty").withStyle(ChatFormatting.WHITE) : FluidVariantAttributes.getName(tank.getResource())).withStyle(ChatFormatting.WHITE));
-        strings.add(Component.translatable("tooltip.titanium.tank.amount").withStyle(ChatFormatting.GOLD).append(Component.literal(ChatFormatting.WHITE + new DecimalFormat().format(tank.getAmount()) + ChatFormatting.GOLD + "/" + ChatFormatting.WHITE + new DecimalFormat().format(tank.getCapacity()) + ChatFormatting.DARK_AQUA + "mb")));
+        strings.add(new net.minecraft.network.chat.TextComponent(ChatFormatting.GOLD + new TranslatableComponent("tooltip.titanium.tank.fluid").getString()).append((tank.getAmount() <= 0L || tank.isResourceBlank()) ? new TranslatableComponent("tooltip.titanium.tank.empty").withStyle(ChatFormatting.WHITE) : FluidVariantAttributes.getName(tank.getResource())).withStyle(ChatFormatting.WHITE));
+        strings.add(new TranslatableComponent("tooltip.titanium.tank.amount").withStyle(ChatFormatting.GOLD).append(new TextComponent(ChatFormatting.WHITE + new DecimalFormat().format(tank.getAmount()) + ChatFormatting.GOLD + "/" + ChatFormatting.WHITE + new DecimalFormat().format(tank.getCapacity()) + ChatFormatting.DARK_AQUA + "mb")));
         if (!Minecraft.getInstance().player.containerMenu.getCarried().isEmpty() && ContainerItemContext.ofPlayerCursor(Minecraft.getInstance().player, Minecraft.getInstance().player.containerMenu).find(FluidStorage.ITEM) != null) {
             Storage<FluidVariant> iFluidHandlerItem = ContainerItemContext.ofPlayerCursor(Minecraft.getInstance().player, Minecraft.getInstance().player.containerMenu).find(FluidStorage.ITEM);
             if (iFluidHandlerItem != null) {
@@ -118,19 +119,19 @@ public class TankScreenAddon extends BasicScreenAddon {
                     }
                 }
                 if (canFillFromItem)
-                    strings.add(Component.translatable("tooltip.titanium.tank.can_fill_from_item").withStyle(ChatFormatting.BLUE));
+                    strings.add(new TranslatableComponent("tooltip.titanium.tank.can_fill_from_item").withStyle(ChatFormatting.BLUE));
                 if (canDrainFromItem)
-                    strings.add(Component.translatable("tooltip.titanium.tank.can_drain_from_item").withStyle(ChatFormatting.GOLD));
+                    strings.add(new TranslatableComponent("tooltip.titanium.tank.can_drain_from_item").withStyle(ChatFormatting.GOLD));
                 if (canFillFromItem)
-                    strings.add(Component.translatable("tooltip.titanium.tank.action_fill").withStyle(ChatFormatting.DARK_GRAY));
+                    strings.add(new TranslatableComponent("tooltip.titanium.tank.action_fill").withStyle(ChatFormatting.DARK_GRAY));
                 if (canDrainFromItem)
-                    strings.add(Component.translatable("tooltip.titanium.tank.action_drain").withStyle(ChatFormatting.DARK_GRAY));
+                    strings.add(new TranslatableComponent("tooltip.titanium.tank.action_drain").withStyle(ChatFormatting.DARK_GRAY));
                 if (!canDrainFromItem && !canFillFromItem) {
-                    strings.add(Component.translatable("tooltip.titanium.tank.no_action").withStyle(ChatFormatting.RED));
+                    strings.add(new TranslatableComponent("tooltip.titanium.tank.no_action").withStyle(ChatFormatting.RED));
                 }
             }
         } else {
-            strings.add(Component.translatable("tooltip.titanium.tank.no_tank").withStyle(ChatFormatting.DARK_GRAY));
+            strings.add(new TranslatableComponent("tooltip.titanium.tank.no_tank").withStyle(ChatFormatting.DARK_GRAY));
         }
         return strings;
     }
@@ -152,7 +153,7 @@ public class TankScreenAddon extends BasicScreenAddon {
             if (screen instanceof AbstractContainerScreen && ((AbstractContainerScreen) screen).getMenu() instanceof ILocatable) {
                 if (!isMouseOver(mouseX - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiLeft(), mouseY - ((AbstractContainerScreenAccessor) screen).port_lib$getGuiTop()))
                     return false;
-                Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 1f, 1f, RandomSource.create(), Minecraft.getInstance().player.blockPosition())); //getPosition
+                Minecraft.getInstance().getSoundManager().play(new SimpleSoundInstance(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, 1f, 1f, Minecraft.getInstance().player.blockPosition())); //getPosition
                 ILocatable locatable = (ILocatable) ((AbstractContainerScreen) screen).getMenu();
                 CompoundTag compoundNBT = new CompoundTag();
                 if (tank instanceof FluidTankComponent) {

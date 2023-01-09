@@ -22,7 +22,7 @@ import com.hrznstudio.titanium.component.inventory.InventoryComponent;
 import com.hrznstudio.titanium.component.inventory.SidedInventoryComponent;
 import com.hrznstudio.titanium.container.addon.IContainerAddon;
 import com.hrznstudio.titanium.util.LangUtil;
-import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.util.INBTSerializable;
 import io.github.fabricators_of_create.porting_lib.util.NBTSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;

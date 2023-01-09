@@ -9,15 +9,16 @@ package com.hrznstudio.titanium.util;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class LangUtil {
 
     public static MutableComponent get(String string, Object... args) {
-        return Component.translatable(string, args);
+        return new TranslatableComponent(string, args);
     }
 
     public static String getString(String string, Object... args) {
-        return Component.translatable(string, args).getString();
+        return new TranslatableComponent(string, args).getString();
     }
 
 }

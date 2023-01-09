@@ -15,7 +15,7 @@ import com.hrznstudio.titanium.plugin.PluginManager;
 import com.hrznstudio.titanium.plugin.PluginPhase;
 import com.hrznstudio.titanium.util.AnnotationUtil;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraftforge.api.fml.event.config.ModConfigEvents;
+import net.minecraftforge.api.fml.event.config.ModConfigEvent;
 
 public abstract class ModuleController {
     private final String modid;
@@ -60,13 +60,17 @@ public abstract class ModuleController {
             ConfigFile annotation = (ConfigFile) aClass.getAnnotation(ConfigFile.class);
             addConfig(AnnotationConfigManager.Type.of(annotation.type(), aClass).setName(annotation.value()));
         });
-        ModConfigEvents.loading(modid).register(ev -> {
-            configManager.inject(ev.getSpec());
-            this.modPluginManager.execute(PluginPhase.CONFIG_LOAD);
+        ModConfigEvent.LOADING.register(c -> {
+            if (c.getModId().equals(modid)){
+                configManager.inject(c.getSpec());
+                this.modPluginManager.execute(PluginPhase.CONFIG_LOAD);
+            }
         });
-        ModConfigEvents.reloading(modid).register(ev -> {
-            configManager.inject(ev.getSpec());
-            this.modPluginManager.execute(PluginPhase.CONFIG_RELOAD);
+        ModConfigEvent.RELOADING.register(c -> {
+            if (c.getModId().equals(modid)){
+                configManager.inject(c.getSpec());
+                this.modPluginManager.execute(PluginPhase.CONFIG_RELOAD);
+            }
         });
         this.modPluginManager.execute(PluginPhase.POST_INIT);
     }

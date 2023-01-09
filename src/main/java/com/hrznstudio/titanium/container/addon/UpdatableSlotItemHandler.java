@@ -8,7 +8,7 @@
 package com.hrznstudio.titanium.container.addon;
 
 import com.hrznstudio.titanium.component.inventory.InventoryComponent;
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import io.github.fabricators_of_create.porting_lib.transfer.item.SlotItemHandler;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -16,7 +16,7 @@ public class UpdatableSlotItemHandler extends SlotItemHandler {
 
     private boolean enabled;
 
-    public UpdatableSlotItemHandler(SlotExposedStorage itemHandler, int index, int xPosition, int yPosition) {
+    public UpdatableSlotItemHandler(ItemStackHandler itemHandler, int index, int xPosition, int yPosition) {
         super(itemHandler, index, xPosition, yPosition);
         this.enabled = true;
     }

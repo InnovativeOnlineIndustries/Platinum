@@ -17,7 +17,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-
+import net.minecraft.network.chat.TextComponent;
 
 
 public class TextFieldScreenAddon extends BasicScreenAddon {
@@ -26,7 +26,7 @@ public class TextFieldScreenAddon extends BasicScreenAddon {
     public TextFieldScreenAddon(int posX, int posY) {
         super(posX, posY);
         textFieldWidget = new EditBox(Minecraft.getInstance().font, posX,
-                posY, 110, 16, Component.literal(""));
+                posY, 110, 16, new TextComponent(""));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class TextFieldScreenAddon extends BasicScreenAddon {
     public void init(int guiX, int guiY) {
         String storage = textFieldWidget.getValue();
         textFieldWidget = new EditBox(Minecraft.getInstance().font, guiX + this.getPosX() + 3,
-                guiY + this.getPosY() + 4, 100, 16, Component.literal(""));
+                guiY + this.getPosY() + 4, 100, 16, new TextComponent(""));
         textFieldWidget.setBordered(false);
         textFieldWidget.setValue(storage);
     }

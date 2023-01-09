@@ -34,18 +34,19 @@ import com.hrznstudio.titanium.network.IButtonHandler;
 import com.hrznstudio.titanium.network.locator.LocatorFactory;
 import com.hrznstudio.titanium.network.locator.instance.TileEntityLocatorInstance;
 import com.hrznstudio.titanium.util.FacingUtil;
+import com.hrznstudio.titanium.util.TitaniumFluidUtil;
 import io.github.fabricators_of_create.porting_lib.transfer.TransferUtil;
+import io.github.fabricators_of_create.porting_lib.transfer.fluid.FluidTransferable;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemTransferable;
 import io.github.fabricators_of_create.porting_lib.util.FluidStack;
 import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
 import io.github.fabricators_of_create.porting_lib.util.NetworkUtil;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SidedStorageBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -53,6 +54,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -78,7 +80,7 @@ import java.util.List;
 
 public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> implements IScreenAddonProvider,
     ITickableBlockEntity<T>, MenuProvider, IButtonHandler, IFacingComponentHarness, IContainerAddonProvider,
-    IHasAssetProvider, SidedStorageBlockEntity {
+    IHasAssetProvider, FluidTransferable, ItemTransferable {
 
     private MultiInventoryComponent<T> multiInventoryComponent;
     private MultiProgressBarHandler<T> multiProgressBarHandler;
@@ -102,7 +104,7 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
     @Override
     @ParametersAreNonnullByDefault
     public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
-        if (multiTankComponent != null && FluidStorageUtil.interactWithFluidStorage(multiTankComponent.getCapabilityForSide(null).orElse(new MultiTankComponent.MultiTankCapabilityHandler(new ArrayList<>())), player, hand)) {
+        if (multiTankComponent != null && TitaniumFluidUtil.interactWithFluidStorage(multiTankComponent.getCapabilityForSide(null).orElse(new MultiTankComponent.MultiTankCapabilityHandler(new ArrayList<>())), player, hand)) {
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
@@ -130,7 +132,7 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
     @Override
     @Nonnull
     public Component getDisplayName() {
-        return Component.translatable(getBasicTileBlock().getDescriptionId()).setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY));
+        return new TranslatableComponent(getBasicTileBlock().getDescriptionId()).setStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY));
     }
 
     /*

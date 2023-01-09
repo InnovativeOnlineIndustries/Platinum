@@ -7,7 +7,7 @@
 
 package com.hrznstudio.titanium.container.impl;
 
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlotExposedStorage;
+import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
 import io.github.fabricators_of_create.porting_lib.transfer.item.SlotItemHandler;
 import net.minecraft.world.item.ItemStack;
 
@@ -17,11 +17,11 @@ import java.util.function.BooleanSupplier;
 public class DisableableItemHandlerSlot extends SlotItemHandler {
     private final BooleanSupplier isDisabled;
 
-    public DisableableItemHandlerSlot(SlotExposedStorage itemHandler, int index, int xPosition, int yPosition, BasicInventoryContainer basicInventoryContainer) {
+    public DisableableItemHandlerSlot(ItemStackHandler itemHandler, int index, int xPosition, int yPosition, BasicInventoryContainer basicInventoryContainer) {
         this(itemHandler, index, xPosition, yPosition, basicInventoryContainer::isDisabled);
     }
 
-    public DisableableItemHandlerSlot(SlotExposedStorage itemHandler, int index, int xPosition, int yPosition, BooleanSupplier isDisabled) {
+    public DisableableItemHandlerSlot(ItemStackHandler itemHandler, int index, int xPosition, int yPosition, BooleanSupplier isDisabled) {
         super(itemHandler, index, xPosition, yPosition);
         this.isDisabled = isDisabled;
     }

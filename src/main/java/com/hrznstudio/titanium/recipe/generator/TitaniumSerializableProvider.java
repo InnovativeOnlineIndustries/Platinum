@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.HashCache;
@@ -46,7 +45,7 @@ public abstract class TitaniumSerializableProvider implements DataProvider {
     }
 
     @Override
-    public void run(CachedOutput cache) throws IOException {
+    public void run(HashCache cache) throws IOException {
         add(serializables);
         Path path = this.generator.getOutputFolder();
         Set<Path> set = Sets.newHashSet();
@@ -60,9 +59,9 @@ public abstract class TitaniumSerializableProvider implements DataProvider {
         });
     }
 
-    protected void saveRecipe(CachedOutput cache, JsonObject recipeJson, Path output) {
+    protected void saveRecipe(HashCache cache, JsonObject recipeJson, Path output) {
         try {
-            DataProvider.saveStable(cache, recipeJson, output);
+            DataProvider.save(cache, recipeJson, output);
         } catch (IOException ioexception) {
             LOGGER.error("Couldn't save recipe {}", output, ioexception);
         }

@@ -9,7 +9,7 @@ package com.hrznstudio.titanium.block.redstone;
 
 import com.hrznstudio.titanium.api.IEnumValues;
 import com.hrznstudio.titanium.api.redstone.IRedstoneAction;
-import io.github.fabricators_of_create.porting_lib.extensions.INBTSerializable;
+import io.github.fabricators_of_create.porting_lib.util.INBTSerializable;
 import net.minecraft.nbt.CompoundTag;
 
 public class RedstoneManager<T extends IEnumValues<T> & IRedstoneAction> implements INBTSerializable<CompoundTag> {

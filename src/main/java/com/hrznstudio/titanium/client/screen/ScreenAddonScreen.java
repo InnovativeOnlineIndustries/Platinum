@@ -19,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public abstract class ScreenAddonScreen extends Screen implements IScreenAddonCo
     private int dragY;
 
     public ScreenAddonScreen(IAssetProvider assetProvider, boolean drawBackground) {
-        super(Component.literal(""));
+        super(new TextComponent(""));
         this.assetProvider = assetProvider;
         this.drawBackground = drawBackground;
     }

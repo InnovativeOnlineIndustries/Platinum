@@ -85,12 +85,6 @@ public abstract class BasicTileBlock<T extends BasicTile<T>> extends BasicBlock 
 
     @Nullable
     @Override
-    public <T extends BlockEntity> GameEventListener getListener(ServerLevel p_153210_, T p_153211_) {
-        return EntityBlock.super.getListener(p_153210_, p_153211_);
-    }
-
-    @Nullable
-    @Override
     public BlockEntity newBlockEntity(BlockPos p_153215_, BlockState p_153216_) {
         return getTileEntityFactory().create(p_153215_, p_153216_);
     }
