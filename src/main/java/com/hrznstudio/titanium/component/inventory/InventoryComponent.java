@@ -130,13 +130,13 @@ public class InventoryComponent<T extends IComponentHarness> extends ItemStackHa
         for (int i = 0; i < getSlots(); i++) {
             ItemStack held = stacks[i];
             if (held.isEmpty()) { // just throw in a full stack
-                int toFill = (int) Math.min(getStackLimit(i, resource, maxAmount), maxAmount);
+                int toFill = (int) Math.min(getStackLimit(i, resource), maxAmount);
                 maxAmount -= toFill;
                 inserted += toFill;
                 ItemStack stack = resource.toStack(toFill);
                 contentsChangedInternal(i, stack, transaction);
             } else if (ItemStackUtil.canItemStacksStack(held, resource.toStack())) { // already filled, but can stack
-                int max = getStackLimit(i, resource, maxAmount); // total possible
+                int max = getStackLimit(i, resource); // total possible
                 int canInsert = max - held.getCount(); // room available
                 int actuallyInsert = Math.min(canInsert, (int) maxAmount);
                 if (actuallyInsert > 0) {
@@ -352,8 +352,8 @@ public class InventoryComponent<T extends IComponentHarness> extends ItemStackHa
     }
 
     @Override
-    public boolean isItemValid(int slot, @Nonnull ItemVariant variant, long amount) {
-        return insertPredicate.test(variant.toStack((int) amount), slot);
+    public boolean isItemValid(int slot, @Nonnull ItemVariant variant) {
+        return insertPredicate.test(variant.toStack(), slot);
     }
 
     @Override

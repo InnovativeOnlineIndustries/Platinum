@@ -234,7 +234,7 @@ public class SidedInventoryComponent<T extends IComponentHarness> extends Invent
 
     private int isValidForAnySlot(ItemStackHandler dest, ItemStack stack) {
         for (int i = 0; i < dest.getSlots(); i++) {
-            if (!dest.isItemValid(i, ItemVariant.of(stack), stack.getCount())) continue;
+            if (!dest.isItemValid(i, ItemVariant.of(stack))) continue;
             if (dest.getStackInSlot(i).isEmpty()) return i;
             if (ItemHandlerHelper.canItemStacksStack(dest.getStackInSlot(i), stack) && dest.getStackInSlot(i).getCount() < dest.getSlotLimit(i) && dest.getStackInSlot(i).getCount() < dest.getStackInSlot(i).getMaxStackSize()) {
                 return i;
