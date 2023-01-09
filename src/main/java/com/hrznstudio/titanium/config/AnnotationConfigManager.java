@@ -7,7 +7,6 @@
 
 package com.hrznstudio.titanium.config;
 
-import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.annotation.config.ConfigFile;
 import com.hrznstudio.titanium.annotation.config.ConfigVal;
 import com.hrznstudio.titanium.util.AnnotationUtil;

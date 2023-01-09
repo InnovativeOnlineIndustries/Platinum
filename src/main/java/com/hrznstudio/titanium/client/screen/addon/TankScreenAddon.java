@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.client.screen.addon;
 
+import com.google.common.collect.Iterators;
 import com.hrznstudio.titanium.Titanium;
 import com.hrznstudio.titanium.api.client.assets.types.ITankAsset;
 import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
@@ -28,6 +29,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
@@ -52,11 +54,11 @@ import java.util.List;
 
 public class TankScreenAddon extends BasicScreenAddon {
 
-    private SingleSlotStorage<FluidVariant> tank;
+    private Storage<FluidVariant> tank;
     private ITankAsset asset;
     private FluidTankComponent.Type type;
 
-    public TankScreenAddon(int posX, int posY, SingleSlotStorage<FluidVariant> tank, FluidTankComponent.Type type) {
+    public TankScreenAddon(int posX, int posY, Storage<FluidVariant> tank, FluidTankComponent.Type type) {
         super(posX, posY);
         this.tank = tank;
         this.type = type;
@@ -66,10 +68,11 @@ public class TankScreenAddon extends BasicScreenAddon {
     public void drawBackgroundLayer(PoseStack stack, Screen screen, IAssetProvider provider, int guiX, int guiY, int mouseX, int mouseY, float partialTicks) {
         asset = IAssetProvider.getAsset(provider, type.getAssetType());
         Rectangle area = asset.getArea();
-        FluidStack fluidStack = new FluidStack(tank.getResource(), tank.getAmount());
+        FluidStack fluidStack = TransferUtil.firstOrEmpty(tank);
+        StorageView<FluidVariant> view = Iterators.get(tank.iterator(), 0);
         if (!fluidStack.isEmpty()) {
-            double stored = tank.getAmount();
-            double capacity = tank.getCapacity();
+            double stored = view.getAmount();
+            double capacity = view.getCapacity();
             int topBottomPadding = asset.getFluidRenderPadding(Direction.UP) + asset.getFluidRenderPadding(Direction.DOWN);
             int offset = (int) ((stored / capacity) * (area.height - topBottomPadding));
             TextureAtlasSprite sprite = FluidVariantRendering.getSprite(fluidStack.getType());
@@ -99,8 +102,9 @@ public class TankScreenAddon extends BasicScreenAddon {
     @Override
     public List<Component> getTooltipLines() {
         List<Component> strings = new ArrayList<>();
-        strings.add(Component.literal(ChatFormatting.GOLD + Component.translatable("tooltip.titanium.tank.fluid").getString()).append((tank.getAmount() <= 0L || tank.isResourceBlank()) ? Component.translatable("tooltip.titanium.tank.empty").withStyle(ChatFormatting.WHITE) : FluidVariantAttributes.getName(tank.getResource())).withStyle(ChatFormatting.WHITE));
-        strings.add(Component.translatable("tooltip.titanium.tank.amount").withStyle(ChatFormatting.GOLD).append(Component.literal(ChatFormatting.WHITE + new DecimalFormat().format(tank.getAmount()) + ChatFormatting.GOLD + "/" + ChatFormatting.WHITE + new DecimalFormat().format(tank.getCapacity()) + ChatFormatting.DARK_AQUA + "mb")));
+        StorageView<FluidVariant> view = Iterators.get(tank.iterator(), 0);
+        strings.add(Component.literal(ChatFormatting.GOLD + Component.translatable("tooltip.titanium.tank.fluid").getString()).append((view.getAmount() <= 0L || view.isResourceBlank()) ? Component.translatable("tooltip.titanium.tank.empty").withStyle(ChatFormatting.WHITE) : FluidVariantAttributes.getName(view.getResource())).withStyle(ChatFormatting.WHITE));
+        strings.add(Component.translatable("tooltip.titanium.tank.amount").withStyle(ChatFormatting.GOLD).append(Component.literal(ChatFormatting.WHITE + new DecimalFormat().format(view.getAmount()) + ChatFormatting.GOLD + "/" + ChatFormatting.WHITE + new DecimalFormat().format(view.getCapacity()) + ChatFormatting.DARK_AQUA + "mb")));
         if (!Minecraft.getInstance().player.containerMenu.getCarried().isEmpty() && ContainerItemContext.ofPlayerCursor(Minecraft.getInstance().player, Minecraft.getInstance().player.containerMenu).find(FluidStorage.ITEM) != null) {
             Storage<FluidVariant> iFluidHandlerItem = ContainerItemContext.ofPlayerCursor(Minecraft.getInstance().player, Minecraft.getInstance().player.containerMenu).find(FluidStorage.ITEM);
             if (iFluidHandlerItem != null) {
