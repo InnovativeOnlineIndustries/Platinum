@@ -73,7 +73,7 @@ dependencies {
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-common-api:$jei_version")
   modCompileOnly("mezz.jei:jei-${project.minecraftVersion}-fabric-api:$jei_version")
 
-  modImplementation(include("io.github.fabricators_of_create.Porting-Lib:porting-lib:${project.port_lib_version}+${project.minecraftVersion}"))
+  modImplementation(include("io.github.fabricators_of_create.Porting-Lib:Porting-Lib:${project.port_lib_version}+${project.minecraftVersion}"))
   modImplementation(include("net.minecraftforge:forgeconfigapiport-fabric:${project.config_api_version}"))
 
   include modApi('teamreborn:energy:2.2.0') {

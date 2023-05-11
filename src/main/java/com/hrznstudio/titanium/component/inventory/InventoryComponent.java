@@ -1,6 +1,6 @@
 /*
  * This file is part of Titanium
- * Copyright (C) 2022, Horizon Studio <contact@hrznstudio.com>.
+ * Copyright (C) 2023, Horizon Studio <contact@hrznstudio.com>.
  *
  * This code is licensed under GNU Lesser General Public License v3.0, the full license text can be found in LICENSE.txt
  */
@@ -130,13 +130,13 @@ public class InventoryComponent<T extends IComponentHarness> extends ItemStackHa
         for (int i = 0; i < getSlots(); i++) {
             ItemStack held = stacks[i];
             if (held.isEmpty()) { // just throw in a full stack
-                int toFill = (int) Math.min(getStackLimit(i, resource, maxAmount), maxAmount);
+                int toFill = (int) Math.min(getStackLimit(i, resource), maxAmount);
                 maxAmount -= toFill;
                 inserted += toFill;
                 ItemStack stack = resource.toStack(toFill);
                 contentsChangedInternal(i, stack, transaction);
             } else if (ItemStackUtil.canItemStacksStack(held, resource.toStack())) { // already filled, but can stack
-                int max = getStackLimit(i, resource, maxAmount); // total possible
+                int max = getStackLimit(i, resource); // total possible
                 int canInsert = max - held.getCount(); // room available
                 int actuallyInsert = Math.min(canInsert, (int) maxAmount);
                 if (actuallyInsert > 0) {

@@ -1,6 +1,6 @@
 /*
  * This file is part of Titanium
- * Copyright (C) 2022, Horizon Studio <contact@hrznstudio.com>.
+ * Copyright (C) 2023, Horizon Studio <contact@hrznstudio.com>.
  *
  * This code is licensed under GNU Lesser General Public License v3.0, the full license text can be found in LICENSE.txt
  */
@@ -90,9 +90,9 @@ public class Titanium extends ModuleController implements ModInitializer {
 
     @Override
     protected void initModules() {
-        BasicAddonContainer.TYPE = getRegistries().registerGeneric(Registry.MENU.key(), "addon_container", () -> (MenuType) new ExtendedScreenHandlerType<>(BasicAddonContainer::create));
+        BasicAddonContainer.TYPE = getRegistries().registerGeneric(Registry.MENU.key(), "addon_container", () -> new ExtendedScreenHandlerType<>(BasicAddonContainer::create));
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) { //ENABLE IN DEV
-            getRegistries().registerGeneric(Registry.RECIPE_SERIALIZER.key(), "shapeless_enchant", () -> (RecipeSerializer) new ShapelessEnchantSerializer());
+            getRegistries().registerGeneric(Registry.RECIPE_SERIALIZER.key(), "shapeless_enchant", ShapelessEnchantSerializer::new);
             TestSerializableRecipe.SERIALIZER = getRegistries().registerGeneric(Registry.RECIPE_SERIALIZER.key(), "test_serializer", () -> new GenericSerializer<>(TestSerializableRecipe.class, TestSerializableRecipe.RECIPE_TYPE));
             TestSerializableRecipe.RECIPE_TYPE = getRegistries().registerGeneric(Registry.RECIPE_TYPE.key(), "", () -> new RecipeType() {
                 @Override
